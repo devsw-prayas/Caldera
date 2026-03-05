@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Caldera")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5253577d5866feaf00c9899bb2af71ac79275cda")]
 [assembly: System.Reflection.AssemblyProductAttribute("Caldera")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Caldera")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

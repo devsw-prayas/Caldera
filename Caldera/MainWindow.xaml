@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:avalon="http://icsharpcode.net/sharpdevelop/avalonedit"
         Title="Caldera"
         Height="800"
         Width="1400"
@@ -10,302 +11,367 @@
         WindowStyle="None"
         ResizeMode="CanResize">
 
-    <Border CornerRadius="12"
+    <Border x:Name="RootBorder"
+            CornerRadius="12"
             ClipToBounds="True"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch">
         <Border.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#3a0a0a" Offset="0"/>
-                <GradientStop Color="#1a0505" Offset="0.4"/>
-                <GradientStop Color="#0a0005" Offset="1"/>
+                <GradientStop x:Name="GradStop0" Color="#5a0f0f" Offset="0"/>
+                <GradientStop x:Name="GradStop1" Color="#2a0808" Offset="0.4"/>
+                <GradientStop x:Name="GradStop2" Color="#0d0008" Offset="1"/>
             </LinearGradientBrush>
         </Border.Background>
 
         <Grid>
-
-            <!-- watermark stack bottom left -->
+            <!-- watermark -->
             <StackPanel HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
                         Margin="20,0,0,10"
                         IsHitTestVisible="False"
                         Panel.ZIndex="0">
                 <TextBlock Text="C++"
-                           FontSize="120"
-                           FontWeight="Black"
+                           FontSize="120" FontWeight="Black"
                            FontFamily="{StaticResource Orbitron}"
-                           Foreground="#ff4020"
-                           Opacity="0.06"
-                           LineHeight="110"/>
+                           Foreground="{DynamicResource AccentBrush}"
+                           Opacity="0.06" LineHeight="110"/>
                 <TextBlock Text="ASM"
-                           FontSize="120"
-                           FontWeight="Black"
+                           FontSize="120" FontWeight="Black"
                            FontFamily="{StaticResource Orbitron}"
-                           Foreground="#ff4020"
-                           Opacity="0.06"
-                           LineHeight="110"/>
+                           Foreground="{DynamicResource AccentBrush}"
+                           Opacity="0.06" LineHeight="110"/>
                 <TextBlock Text="CALDERA"
-                           FontSize="120"
-                           FontWeight="Black"
+                           FontSize="120" FontWeight="Black"
                            FontFamily="{StaticResource Orbitron}"
-                           Foreground="#ff4020"
-                           Opacity="0.06"
-                           LineHeight="110"/>
+                           Foreground="{DynamicResource AccentBrush}"
+                           Opacity="0.06" LineHeight="110"/>
             </StackPanel>
 
             <Grid Panel.ZIndex="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="48"/>
+                    <RowDefinition Height="28"/>
                     <RowDefinition Height="48"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- title bar -->
-                <Border Grid.Row="0"
-                        Background="Transparent"
+                <!-- ── TITLE BAR ── -->
+                <Border Grid.Row="0" Background="#661a0505"
                         MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                     <Grid Margin="16,0">
-                        <StackPanel Orientation="Horizontal"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center">
-                            <TextBlock Text="🌋"
-                                       FontSize="18"
-                                       Margin="0,0,10,0"
-                                       VerticalAlignment="Center"/>
-                            <TextBlock Foreground="#ff4020"
-                                       FontSize="14"
-                                       FontWeight="Black"
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <TextBlock Text="🌋" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                            <TextBlock Foreground="{DynamicResource AccentBrush}"
+                                       FontSize="14" FontWeight="Black"
                                        FontFamily="{StaticResource Orbitron}"
-                                       VerticalAlignment="Center"
-                                       Margin="0,0,12,0">
+                                       VerticalAlignment="Center" Margin="0,0,12,0">
                                 <TextBlock.Text>CALDERA</TextBlock.Text>
                                 <TextBlock.Effect>
-                                    <DropShadowEffect Color="#ff4020"
-                                                      BlurRadius="18"
-                                                      ShadowDepth="0"
-                                                      Opacity="0.9"/>
+                                    <DropShadowEffect x:Name="TitleGlow" Color="#ff4020"
+                                                      BlurRadius="18" ShadowDepth="0" Opacity="0.9"/>
                                 </TextBlock.Effect>
                             </TextBlock>
                             <TextBlock Text="//  compiler explorer"
-                                       Foreground="#5a3030"
-                                       FontSize="11"
-                                       FontFamily="Consolas"
-                                       VerticalAlignment="Center"/>
+                                       Foreground="#7a5050"
+                                       FontSize="11" FontFamily="Consolas" VerticalAlignment="Center"/>
                         </StackPanel>
-
-                        <StackPanel Orientation="Horizontal"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center">
-                            <Button Content="—"
-                                    Style="{StaticResource WindowButton}"
-                                    Click="MinimizeButton_Click"/>
-                            <Button Content="□"
-                                    Style="{StaticResource WindowButton}"
-                                    Click="MaximizeButton_Click"/>
-                            <Button Content="✕"
-                                    Style="{StaticResource CloseButton}"
-                                    Click="CloseButton_Click"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Content="—" Style="{StaticResource WindowButton}" Click="MinimizeButton_Click"/>
+                            <Button Content="□" Style="{StaticResource WindowButton}" Click="MaximizeButton_Click"/>
+                            <Button Content="✕" Style="{StaticResource CloseButton}"  Click="CloseButton_Click"/>
                         </StackPanel>
                     </Grid>
                 </Border>
 
-                <!-- toolbar -->
-                <Border Grid.Row="1"
-                        Margin="12,0,12,0"
-                        BorderThickness="0,1,0,1">
+                <!-- ── MENU BAR ── -->
+                <Border Grid.Row="1" Margin="12,0,12,0" BorderThickness="0,0,0,1">
                     <Border.BorderBrush>
-                        <SolidColorBrush Color="#2a1010"/>
+                        <SolidColorBrush Color="{DynamicResource BorderDim}"/>
+                    </Border.BorderBrush>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
+                        <Button Content="Preferences" Style="{StaticResource MenuBarButton}"
+                                Click="PreferencesMenuButton_Click"/>
+                        <Button Content="Help" Style="{StaticResource MenuBarButton}"
+                                Click="HelpButton_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── TOOLBAR ── -->
+                <Border Grid.Row="2" Margin="12,0,12,0" BorderThickness="0,0,0,1">
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="{DynamicResource BorderDim}"/>
                     </Border.BorderBrush>
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#1a0808" Offset="0"/>
-                            <GradientStop Color="#120505" Offset="0.5"/>
-                            <GradientStop Color="#1a0808" Offset="1"/>
+                            <GradientStop Color="{DynamicResource PanelBg}" Offset="0"/>
+                            <GradientStop Color="{DynamicResource BgMid}"   Offset="0.5"/>
+                            <GradientStop Color="{DynamicResource PanelBg}" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
-                    <StackPanel Orientation="Horizontal"
-                                VerticalAlignment="Center"
-                                Margin="8,0">
-
-                        <ComboBox x:Name="CompilerSelector"
-                                  Width="120"
-                                  Style="{StaticResource CalderaComboBox}"
-                                  Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
+                        <ComboBox x:Name="CompilerSelector" Width="120"
+                                  Style="{StaticResource CalderaComboBox}" Margin="0,0,8,0">
                             <ComboBoxItem Content="clang++" IsSelected="True"/>
                             <ComboBoxItem Content="g++"/>
                             <ComboBoxItem Content="cl.exe"/>
                         </ComboBox>
-
-                        <TextBox x:Name="FlagsInput"
-                                 Width="320"
+                        <TextBox x:Name="FlagsInput" Width="320"
                                  Style="{StaticResource CalderaTextBox}"
                                  Text="-O3 -std=c++20 -madx -march=native"
                                  Margin="0,0,8,0"/>
-
-                        <ComboBox x:Name="StdSelector"
-                                  Width="100"
-                                  Style="{StaticResource CalderaComboBox}"
-                                  Margin="0,0,8,0">
+                        <ComboBox x:Name="StdSelector" Width="100"
+                                  Style="{StaticResource CalderaComboBox}" Margin="0,0,8,0">
                             <ComboBoxItem Content="c++23"/>
                             <ComboBoxItem Content="c++20" IsSelected="True"/>
                             <ComboBoxItem Content="c++17"/>
                             <ComboBoxItem Content="c++14"/>
                         </ComboBox>
-
-                        <Button x:Name="RunButton"
-                                Content="▶  Run"
-                                Width="90"
-                                Height="30"
+                        <Button x:Name="RunButton" Content="▶  Run"
+                                Width="90" Height="30"
                                 Style="{StaticResource RunButton}"
                                 Click="RunButton_Click"/>
                     </StackPanel>
                 </Border>
 
-                <!-- editor panes -->
-                <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                <!-- ── EDITOR + OUTPUT AREA ── -->
+                <Grid Grid.Row="3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" MinHeight="120"/>
+                        <RowDefinition x:Name="SplitterRow" Height="5"/>
+                        <RowDefinition x:Name="OutputRow" Height="0" MinHeight="0"/>
+                    </Grid.RowDefinitions>
 
-                    <!-- left pane: source -->
-                    <Border Grid.Column="0"
-                            Margin="12,8,6,12"
-                            CornerRadius="10"
-                            BorderThickness="1">
-                        <Border.BorderBrush>
-                            <SolidColorBrush Color="#ff4020" Opacity="0.3"/>
-                        </Border.BorderBrush>
-                        <Border.Background>
-                            <SolidColorBrush Color="#0d0505" Opacity="0.4"/>
-                        </Border.Background>
-                        <Grid>
-                            <Border Height="36"
-                                    VerticalAlignment="Top"
-                                    CornerRadius="10,10,0,0"
-                                    BorderThickness="0,0,0,1">
-                                <Border.Background>
-                                    <SolidColorBrush Color="#1a0a0a" Opacity="0.5"/>
-                                </Border.Background>
-                                <Border.BorderBrush>
-                                    <SolidColorBrush Color="#ff4020" Opacity="0.15"/>
-                                </Border.BorderBrush>
-                                <Grid Margin="12,0">
-                                    <!-- left: badge -->
-                                    <Border Background="#ff4020"
-                                            CornerRadius="3"
-                                            Padding="6,2"
-                                            HorizontalAlignment="Left"
-                                            VerticalAlignment="Center">
-                                        <Border.Effect>
-                                            <DropShadowEffect Color="#ff4020"
-                                                              BlurRadius="10"
-                                                              ShadowDepth="0"
-                                                              Opacity="0.8"/>
-                                        </Border.Effect>
-                                        <TextBlock Text="C++"
-                                                   Foreground="#ffffff"
-                                                   FontSize="10"
-                                                   FontWeight="Bold"
-                                                   FontFamily="Consolas"/>
-                                    </Border>
+                    <!-- ── TOP: EDITOR PANES ── -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                                    <!-- right: filename -->
-                                    <TextBlock Text="source.cpp"
-                                               Foreground="#5a3030"
-                                               FontSize="11"
-                                               FontFamily="Consolas"
-                                               HorizontalAlignment="Right"
-                                               VerticalAlignment="Center"/>
-                                </Grid>
-                            </Border>
+                        <!-- left: source -->
+                        <Border Grid.Column="0" Margin="12,8,6,12" CornerRadius="10" BorderThickness="1">
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.3"/>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <SolidColorBrush Color="{DynamicResource PanelBgDark}" Opacity="0.4"/>
+                            </Border.Background>
+                            <Grid>
+                                <Border Height="36" VerticalAlignment="Top"
+                                        CornerRadius="10,10,0,0" BorderThickness="0,0,0,1">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="{DynamicResource BgLight}" Opacity="0.3"/>
+                                    </Border.Background>
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.15"/>
+                                    </Border.BorderBrush>
+                                    <Grid Margin="12,0">
+                                        <Border CornerRadius="3" Padding="6,2"
+                                                HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{DynamicResource AccentColor}"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="{DynamicResource AccentGlowColor}"
+                                                                  BlurRadius="10" ShadowDepth="0" Opacity="0.8"/>
+                                            </Border.Effect>
+                                            <TextBlock Text="C++" Foreground="#ffffff"
+                                                       FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
+                                        </Border>
+                                        <TextBlock Text="source.cpp"
+                                                   Foreground="{DynamicResource TextDimBrush}"
+                                                   FontSize="11" FontFamily="Consolas"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                                <avalon:TextEditor x:Name="SourceEditor"
+                                         Margin="0,36,0,0"
+                                         Background="Transparent" Foreground="#e8d8d8"
+                                         BorderThickness="0" FontFamily="Consolas" FontSize="13"
+                                         ShowLineNumbers="True"
+                                         Padding="12"/>
+                            </Grid>
+                        </Border>
 
-                            <TextBox x:Name="SourceEditor"
-                                     Margin="0,36,0,0"
-                                     Background="Transparent"
-                                     Foreground="#e8d8d8"
-                                     BorderThickness="0"
-                                     FontFamily="Consolas"
-                                     FontSize="13"
-                                     AcceptsReturn="True"
-                                     AcceptsTab="True"
-                                     VerticalScrollBarVisibility="Auto"
-                                     HorizontalScrollBarVisibility="Auto"
-                                     CaretBrush="#ff4020"
-                                     SelectionBrush="#ff402040"
-                                     Padding="12"/>
-                        </Grid>
-                    </Border>
+                        <!-- vertical splitter -->
+                        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch">
+                            <GridSplitter.Background>
+                                <SolidColorBrush Color="{DynamicResource BorderDim}"/>
+                            </GridSplitter.Background>
+                        </GridSplitter>
 
-                    <!-- splitter -->
-                    <GridSplitter Grid.Column="1"
-                                  Width="5"
-                                  HorizontalAlignment="Stretch"
-                                  Background="#2a1010"/>
+                        <!-- right: asm -->
+                        <Border Grid.Column="2" Margin="6,8,12,12" CornerRadius="10" BorderThickness="1">
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.3"/>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <SolidColorBrush Color="{DynamicResource PanelBgDark}" Opacity="0.4"/>
+                            </Border.Background>
+                            <Grid>
+                                <Border Height="36" VerticalAlignment="Top"
+                                        CornerRadius="10,10,0,0" BorderThickness="0,0,0,1">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="{DynamicResource BgLight}" Opacity="0.3"/>
+                                    </Border.Background>
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.15"/>
+                                    </Border.BorderBrush>
+                                    <Grid Margin="12,0">
+                                        <Border CornerRadius="3" Padding="6,2"
+                                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                BorderThickness="1">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{DynamicResource BorderDim}"/>
+                                            </Border.Background>
+                                            <Border.BorderBrush>
+                                                <SolidColorBrush Color="{DynamicResource AccentColor}"/>
+                                            </Border.BorderBrush>
+                                            <TextBlock Text="ASM" Foreground="{DynamicResource AccentBrush}"
+                                                       FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
+                                        </Border>
+                                        <TextBlock Text="output.asm"
+                                                   Foreground="{DynamicResource TextDimBrush}"
+                                                   FontSize="11" FontFamily="Consolas"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                                <avalon:TextEditor x:Name="AsmOutput"
+                                         Margin="0,36,0,0"
+                                         Background="Transparent" Foreground="#e8d8d8"
+                                         BorderThickness="0" FontFamily="Consolas" FontSize="13"
+                                         SyntaxHighlighting="ASM"
+                                         ShowLineNumbers="True"
+                                         IsReadOnly="True"
+                                         Padding="12"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
 
-                    <!-- right pane: asm -->
-                    <Border Grid.Column="2"
-                            Margin="6,8,12,12"
-                            CornerRadius="10"
-                            BorderThickness="1">
-                        <Border.BorderBrush>
-                            <SolidColorBrush Color="#ff4020" Opacity="0.3"/>
-                        </Border.BorderBrush>
-                        <Border.Background>
-                            <SolidColorBrush Color="#0d0505" Opacity="0.4"/>
-                        </Border.Background>
-                        <Grid>
-                            <Border Height="36"
-                                    VerticalAlignment="Top"
-                                    CornerRadius="10,10,0,0"
-                                    BorderThickness="0,0,0,1">
-                                <Border.Background>
-                                    <SolidColorBrush Color="#1a0a0a" Opacity="0.5"/>
-                                </Border.Background>
-                                <Border.BorderBrush>
-                                    <SolidColorBrush Color="#ff4020" Opacity="0.15"/>
-                                </Border.BorderBrush>
-                                <Grid Margin="12,0">
-                                    <!-- left: badge -->
-                                    <Border Background="#2a1010"
-                                            CornerRadius="3"
-                                            Padding="6,2"
-                                            HorizontalAlignment="Left"
-                                            VerticalAlignment="Center"
-                                            BorderBrush="#ff4020"
-                                            BorderThickness="1">
-                                        <TextBlock Text="ASM"
-                                                   Foreground="#ff4020"
-                                                   FontSize="10"
-                                                   FontWeight="Bold"
-                                                   FontFamily="Consolas"/>
-                                    </Border>
+                    <!-- ── HORIZONTAL SPLITTER (hidden until output opens) ── -->
+                    <GridSplitter x:Name="OutputSplitter"
+                                  Grid.Row="1"
+                                  Height="5" HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  Visibility="Collapsed">
+                        <GridSplitter.Background>
+                            <SolidColorBrush Color="{DynamicResource BorderDim}"/>
+                        </GridSplitter.Background>
+                    </GridSplitter>
 
-                                    <!-- right: filename -->
-                                    <TextBlock Text="output.asm"
-                                               Foreground="#5a3030"
-                                               FontSize="11"
-                                               FontFamily="Consolas"
-                                               HorizontalAlignment="Right"
-                                               VerticalAlignment="Center"/>
-                                </Grid>
-                            </Border>
+                    <!-- ── BOTTOM: OUTPUT PANELS ── -->
+                    <Grid x:Name="OutputPanel"
+                          Grid.Row="2"
+                          Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                            <TextBox x:Name="AsmOutput"
-                                     Margin="0,36,0,0"
-                                     Background="Transparent"
-                                     Foreground="#e8d8d8"
-                                     BorderThickness="0"
-                                     FontFamily="Consolas"
-                                     FontSize="13"
-                                     IsReadOnly="True"
-                                     AcceptsReturn="True"
-                                     VerticalScrollBarVisibility="Auto"
-                                     HorizontalScrollBarVisibility="Auto"
-                                     Padding="12"/>
-                        </Grid>
-                    </Border>
+                        <!-- left: compiler errors -->
+                        <Border Grid.Column="0" Margin="12,4,6,12" CornerRadius="10" BorderThickness="1">
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.3"/>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <SolidColorBrush Color="{DynamicResource PanelBgDark}" Opacity="0.4"/>
+                            </Border.Background>
+                            <Grid>
+                                <Border Height="36" VerticalAlignment="Top"
+                                        CornerRadius="10,10,0,0" BorderThickness="0,0,0,1">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="{DynamicResource BgLight}" Opacity="0.3"/>
+                                    </Border.Background>
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.15"/>
+                                    </Border.BorderBrush>
+                                    <Grid Margin="12,0">
+                                        <Border CornerRadius="3" Padding="6,2"
+                                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                BorderThickness="1">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{DynamicResource BorderDim}"/>
+                                            </Border.Background>
+                                            <Border.BorderBrush>
+                                                <SolidColorBrush Color="{DynamicResource AccentColor}"/>
+                                            </Border.BorderBrush>
+                                            <TextBlock Text="OUTPUT" Foreground="{DynamicResource AccentBrush}"
+                                                       FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
+                                        </Border>
+                                        <TextBlock Text="compiler output"
+                                                   Foreground="{DynamicResource TextDimBrush}"
+                                                   FontSize="11" FontFamily="Consolas"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                                <TextBox x:Name="CompilerOutput"
+                                         Margin="0,36,0,0"
+                                         Background="Transparent" Foreground="#e8d8d8"
+                                         BorderThickness="0" FontFamily="Consolas" FontSize="12"
+                                         IsReadOnly="True" AcceptsReturn="True"
+                                         VerticalScrollBarVisibility="Auto"
+                                         HorizontalScrollBarVisibility="Auto"
+                                         Padding="12"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- output splitter -->
+                        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch">
+                            <GridSplitter.Background>
+                                <SolidColorBrush Color="{DynamicResource BorderDim}"/>
+                            </GridSplitter.Background>
+                        </GridSplitter>
+
+                        <!-- right: llvm-mca -->
+                        <Border Grid.Column="2" Margin="6,4,12,12" CornerRadius="10" BorderThickness="1">
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.3"/>
+                            </Border.BorderBrush>
+                            <Border.Background>
+                                <SolidColorBrush Color="{DynamicResource PanelBgDark}" Opacity="0.4"/>
+                            </Border.Background>
+                            <Grid>
+                                <Border Height="36" VerticalAlignment="Top"
+                                        CornerRadius="10,10,0,0" BorderThickness="0,0,0,1">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="{DynamicResource BgLight}" Opacity="0.3"/>
+                                    </Border.Background>
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.15"/>
+                                    </Border.BorderBrush>
+                                    <Grid Margin="12,0">
+                                        <Border CornerRadius="3" Padding="6,2"
+                                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                BorderThickness="1">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{DynamicResource BorderDim}"/>
+                                            </Border.Background>
+                                            <Border.BorderBrush>
+                                                <SolidColorBrush Color="{DynamicResource AccentColor}"/>
+                                            </Border.BorderBrush>
+                                            <TextBlock Text="LLVM-MCA" Foreground="{DynamicResource AccentBrush}"
+                                                       FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
+                                        </Border>
+                                        <TextBlock Text="analysis"
+                                                   Foreground="{DynamicResource TextDimBrush}"
+                                                   FontSize="11" FontFamily="Consolas"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                                <TextBox x:Name="McaOutput"
+                                         Margin="0,36,0,0"
+                                         Background="Transparent" Foreground="#e8d8d8"
+                                         BorderThickness="0" FontFamily="Consolas" FontSize="12"
+                                         IsReadOnly="True" AcceptsReturn="True"
+                                         VerticalScrollBarVisibility="Auto"
+                                         HorizontalScrollBarVisibility="Auto"
+                                         Padding="12"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
                 </Grid>
             </Grid>
         </Grid>

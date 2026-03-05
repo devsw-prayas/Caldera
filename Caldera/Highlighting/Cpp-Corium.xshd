@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="C++" extensions=".cpp;.h;.hpp;.cxx;.cc;.hxx" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment"      foreground="#7a3a2a" />
+  <Color name="String"       foreground="#e8a87c" />
+  <Color name="Char"         foreground="#e8a87c" />
+  <Color name="Preprocessor" foreground="#cc5533" />
+  <Color name="Keyword"      foreground="#ff6644" fontWeight="bold" />
+  <Color name="Type"         foreground="#dd4422" />
+  <Color name="Number"       foreground="#ffaa88" />
+  <Color name="Punctuation"  foreground="#884433" />
+
+  <RuleSet name="CommentMarkerSet">
+    <Keywords fontWeight="bold" foreground="#ff4020">
+      <Word>TODO</Word>
+      <Word>FIXME</Word>
+      <Word>NOTE</Word>
+    </Keywords>
+  </RuleSet>
+
+  <RuleSet ignoreCase="false">
+
+    <!-- Line comment -->
+    <Span color="Comment" ruleSet="CommentMarkerSet">
+      <Begin>//</Begin>
+    </Span>
+
+    <!-- Block comment -->
+    <Span color="Comment" ruleSet="CommentMarkerSet" multiline="true">
+      <Begin>/\*</Begin>
+      <End>\*/</End>
+    </Span>
+
+    <!-- String -->
+    <Span color="String">
+      <Begin>"</Begin>
+      <End>"</End>
+      <RuleSet>
+        <Span begin="\\" end="."/>
+      </RuleSet>
+    </Span>
+
+    <!-- Char -->
+    <Span color="Char">
+      <Begin>'</Begin>
+      <End>'</End>
+      <RuleSet>
+        <Span begin="\\" end="."/>
+      </RuleSet>
+    </Span>
+
+    <!-- Preprocessor -->
+    <Span color="Preprocessor">
+      <Begin>^\s*\#</Begin>
+      <End>$</End>
+    </Span>
+
+    <!-- Numbers -->
+    <Rule color="Number">
+      \b0[xX][0-9a-fA-F]+  |
+      \b0[bB][01]+          |
+      \b[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?[fFlLuU]*\b
+    </Rule>
+
+    <!-- Keywords -->
+    <Keywords color="Keyword">
+      <Word>alignas</Word><Word>alignof</Word><Word>and</Word><Word>and_eq</Word>
+      <Word>asm</Word><Word>auto</Word><Word>bitand</Word><Word>bitor</Word>
+      <Word>break</Word><Word>case</Word><Word>catch</Word><Word>class</Word>
+      <Word>compl</Word><Word>concept</Word><Word>const</Word><Word>consteval</Word>
+      <Word>constexpr</Word><Word>constinit</Word><Word>const_cast</Word>
+      <Word>continue</Word><Word>co_await</Word><Word>co_return</Word>
+      <Word>co_yield</Word><Word>decltype</Word><Word>default</Word>
+      <Word>delete</Word><Word>do</Word><Word>double</Word><Word>dynamic_cast</Word>
+      <Word>else</Word><Word>enum</Word><Word>explicit</Word><Word>export</Word>
+      <Word>extern</Word><Word>false</Word><Word>float</Word><Word>for</Word>
+      <Word>friend</Word><Word>goto</Word><Word>if</Word><Word>inline</Word>
+      <Word>int</Word><Word>long</Word><Word>mutable</Word><Word>namespace</Word>
+      <Word>new</Word><Word>noexcept</Word><Word>not</Word><Word>not_eq</Word>
+      <Word>nullptr</Word><Word>operator</Word><Word>or</Word><Word>or_eq</Word>
+      <Word>private</Word><Word>protected</Word><Word>public</Word>
+      <Word>register</Word><Word>reinterpret_cast</Word><Word>requires</Word>
+      <Word>return</Word><Word>short</Word><Word>signed</Word><Word>sizeof</Word>
+      <Word>static</Word><Word>static_assert</Word><Word>static_cast</Word>
+      <Word>struct</Word><Word>switch</Word><Word>template</Word><Word>this</Word>
+      <Word>thread_local</Word><Word>throw</Word><Word>true</Word><Word>try</Word>
+      <Word>typedef</Word><Word>typeid</Word><Word>typename</Word><Word>union</Word>
+      <Word>unsigned</Word><Word>using</Word><Word>virtual</Word><Word>void</Word>
+      <Word>volatile</Word><Word>wchar_t</Word><Word>while</Word><Word>xor</Word>
+      <Word>xor_eq</Word><Word>char</Word><Word>bool</Word><Word>char8_t</Word>
+      <Word>char16_t</Word><Word>char32_t</Word><Word>override</Word><Word>final</Word>
+    </Keywords>
+
+  </RuleSet>
+</SyntaxDefinition>

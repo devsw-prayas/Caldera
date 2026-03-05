@@ -8,4 +8,70 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Asm-Corium.xshd" />
+    <None Remove="Asm-Iota.xshd" />
+    <None Remove="Asm-Spectra.xshd" />
+    <None Remove="Asm-StormSTL.xshd" />
+    <None Remove="Cpp-Corium.xshd" />
+    <None Remove="Cpp-Iota.xshd" />
+    <None Remove="Cpp-Spectra.xshd" />
+    <None Remove="Cpp-StormSTL.xshd" />
+    <None Remove="Fonts\ORBITRON-BLACK.TTF" />
+    <None Remove="Fonts\ORBITRON-MEDIUM.TTF" />
+    <None Remove="Fonts\ORBITRON-SEMIBOLD.TTF" />
+    <None Remove="Fonts\ORBITRON-VARIABLEFONT_WGHT.TTF" />
+    <None Remove="Highlighting\Asm-Corium.xshd" />
+    <None Remove="Highlighting\Asm-Iota.xshd" />
+    <None Remove="Highlighting\Asm-Spectra.xshd" />
+    <None Remove="Highlighting\Asm-StormSTL.xshd" />
+    <None Remove="Highlighting\Cpp-Corium.xshd" />
+    <None Remove="Highlighting\Cpp-Iota.xshd" />
+    <None Remove="Highlighting\Cpp-Spectra.xshd" />
+    <None Remove="Highlighting\Cpp-StormSTL.xshd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AvalonEdit" Version="6.3.1.120" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Highlighting\Asm-Corium.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Highlighting\Asm-Iota.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Highlighting\Asm-Spectra.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Highlighting\Asm-StormSTL.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Highlighting\Cpp-Corium.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Highlighting\Cpp-Iota.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Highlighting\Cpp-Spectra.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Highlighting\Cpp-StormSTL.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Resource Include="Fonts\ORBITRON-BLACK.TTF">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\ORBITRON-MEDIUM.TTF">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\ORBITRON-SEMIBOLD.TTF">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\ORBITRON-VARIABLEFONT_WGHT.TTF">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
 </Project>
