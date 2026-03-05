@@ -15,8 +15,8 @@ namespace Caldera
         private double _pendingFontSize;
         private double _pendingOutputFontSize;
 
-        // ── Theme colour tables ───────────────────────────────────────────────
-        private static readonly Dictionary<string, Dictionary<string, Color>> Themes = new()
+        // ── Theme colour tables (public so PreferencesStore can access) ───────
+        public static readonly Dictionary<string, Dictionary<string, Color>> Themes = new()
         {
             ["Corium"] = new()
             {
@@ -80,10 +80,10 @@ namespace Caldera
         {
             InitializeComponent();
 
-            // Snapshot current theme name from app resources
             _pendingTheme = ThemeManager.CurrentTheme;
             _pendingFontFamily = ThemeManager.CurrentFontFamily;
             _pendingFontSize = ThemeManager.CurrentFontSize;
+            _pendingOutputFontSize = ThemeManager.CurrentOutputFontSize;
 
             // Populate system font list
             var fonts = Fonts.SystemFontFamilies
@@ -94,8 +94,8 @@ namespace Caldera
             FontFamilyPicker.SelectedItem = _pendingFontFamily;
 
             FontSizeSlider.Value = _pendingFontSize;
-            OutputFontSizeSlider.Value = ThemeManager.CurrentOutputFontSize;
-            _pendingOutputFontSize = ThemeManager.CurrentOutputFontSize;
+            OutputFontSizeSlider.Value = _pendingOutputFontSize;
+
             UpdateFontPreview();
             HighlightSelectedTheme(_pendingTheme);
 
@@ -103,6 +103,7 @@ namespace Caldera
             ClangPath.Text = CompilerPaths.Clang;
             GppPath.Text = CompilerPaths.Gpp;
             ClPath.Text = CompilerPaths.Cl;
+            McaPath.Text = CompilerPaths.Mca;
         }
 
         // ── Theme card click ─────────────────────────────────────────────────
@@ -170,7 +171,7 @@ namespace Caldera
             if (Themes.TryGetValue(_pendingTheme, out var colors))
                 ThemeManager.ApplyTheme(_pendingTheme, colors);
 
-            // Apply font to main window editor
+            // Apply fonts
             ThemeManager.ApplyFont(_pendingFontFamily, _pendingFontSize);
             ThemeManager.ApplyOutputFont(_pendingOutputFontSize);
 
@@ -178,6 +179,20 @@ namespace Caldera
             CompilerPaths.Clang = ClangPath.Text.Trim();
             CompilerPaths.Gpp = GppPath.Text.Trim();
             CompilerPaths.Cl = ClPath.Text.Trim();
+            CompilerPaths.Mca = McaPath.Text.Trim();
+
+            // Persist to JSON
+            PreferencesStore.Save(new PreferencesData
+            {
+                Theme = _pendingTheme,
+                FontFamily = _pendingFontFamily,
+                FontSize = _pendingFontSize,
+                OutputFontSize = _pendingOutputFontSize,
+                ClangPath = CompilerPaths.Clang,
+                GppPath = CompilerPaths.Gpp,
+                ClPath = CompilerPaths.Cl,
+                McaPath = CompilerPaths.Mca,
+            });
 
             Close();
         }
@@ -187,7 +202,7 @@ namespace Caldera
         private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) => DragMove();
     }
 
-    // ── Compiler path browser helpers ────────────────────────────────────────────
+    // ── Compiler path browser helpers ─────────────────────────────────────────
     public partial class PreferencesWindow
     {
         private void BrowseClang_Click(object sender, RoutedEventArgs e) =>
@@ -198,6 +213,9 @@ namespace Caldera
 
         private void BrowseCl_Click(object sender, RoutedEventArgs e) =>
             BrowseForExe("cl", path => ClPath.Text = path);
+
+        private void BrowseMca_Click(object sender, RoutedEventArgs e) =>
+            BrowseForExe("llvm-mca", path => McaPath.Text = path);
 
         private static void BrowseForExe(string title, Action<string> setter)
         {
@@ -211,40 +229,35 @@ namespace Caldera
         }
     }
 
-    // ── Static compiler path store ────────────────────────────────────────────────
+    // ── Static compiler path store ────────────────────────────────────────────
     public static class CompilerPaths
     {
-        /// <summary>Full path to clang++.exe, or empty to invoke via PATH.</summary>
         public static string Clang { get; set; } = string.Empty;
-
-        /// <summary>Full path to g++.exe, or empty to invoke via PATH.</summary>
         public static string Gpp { get; set; } = string.Empty;
-
-        /// <summary>Full path to cl.exe, or empty to invoke via PATH.</summary>
         public static string Cl { get; set; } = string.Empty;
+        public static string Mca { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Returns the resolved executable for the given compiler selection.
-        /// Falls back to the bare command name so the OS searches PATH.
-        /// </summary>
         public static string Resolve(string compilerName) => compilerName switch
         {
             "clang++" => string.IsNullOrWhiteSpace(Clang) ? "clang++" : Clang,
             "g++" => string.IsNullOrWhiteSpace(Gpp) ? "g++" : Gpp,
             "cl.exe" => string.IsNullOrWhiteSpace(Cl) ? "cl" : Cl,
+            "llvm-mca" => string.IsNullOrWhiteSpace(Mca) ? "llvm-mca" : Mca,
             _ => compilerName
         };
     }
 
-    // ── Static theme manager shared between windows ───────────────────────────
+    // ── Static theme manager ──────────────────────────────────────────────────
     public static class ThemeManager
     {
         public static string CurrentTheme { get; private set; } = "Corium";
         public static string CurrentFontFamily { get; private set; } = "Consolas";
         public static double CurrentFontSize { get; private set; } = 13;
+        public static double CurrentOutputFontSize { get; private set; } = 12;
 
         public static event Action? ThemeChanged;
         public static event Action<string, double>? FontChanged;
+        public static event Action<double>? OutputFontSizeChanged;
 
         public static void ApplyTheme(string name, Dictionary<string, Color> colors)
         {
@@ -253,7 +266,6 @@ namespace Caldera
             foreach (var (key, value) in colors)
                 res[key] = value;
 
-            // Refresh brushes that reference the colors
             res["AccentBrush"] = new SolidColorBrush(colors["AccentColor"]);
             res["AccentDimBrush"] = new SolidColorBrush(colors["AccentDimColor"]);
             res["BorderDimBrush"] = new SolidColorBrush(colors["BorderDim"]);
@@ -270,9 +282,6 @@ namespace Caldera
             CurrentFontSize = size;
             FontChanged?.Invoke(family, size);
         }
-
-        public static double CurrentOutputFontSize { get; private set; } = 12;
-        public static event Action<double>? OutputFontSizeChanged;
 
         public static void ApplyOutputFont(double size)
         {

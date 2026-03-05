@@ -111,15 +111,116 @@
                     </Border.Background>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
                         <ComboBox x:Name="CompilerSelector" Width="120"
-                                  Style="{StaticResource CalderaComboBox}" Margin="0,0,8,0">
+                                  Style="{StaticResource CalderaComboBox}" Margin="0,0,8,0"
+                                  SelectionChanged="CompilerSelector_SelectionChanged">
                             <ComboBoxItem Content="clang++" IsSelected="True"/>
                             <ComboBoxItem Content="g++"/>
                             <ComboBoxItem Content="cl.exe"/>
                         </ComboBox>
-                        <TextBox x:Name="FlagsInput" Width="320"
+
+                        <!-- ── FLAGS INPUT + PICKER ── -->
+                        <TextBox x:Name="FlagsInput" Width="300"
                                  Style="{StaticResource CalderaTextBox}"
                                  Text="-O3 -std=c++20 -madx -march=native"
-                                 Margin="0,0,8,0"/>
+                                 Margin="0,0,0,0"/>
+
+                        <!-- Flag picker button + popup, anchored to a Grid so popup aligns -->
+                        <Grid Margin="4,0,8,0">
+                            <Button x:Name="FlagPickerButton"
+                                    Content="▾ flags"
+                                    Width="68" Height="30"
+                                    Style="{StaticResource MenuBarButton}"
+                                    Click="FlagPickerButton_Click"/>
+                            <Popup x:Name="FlagPickerPopup"
+                                   PlacementTarget="{Binding ElementName=FlagPickerButton}"
+                                   Placement="Bottom"
+                                   AllowsTransparency="True"
+                                   StaysOpen="False"
+                                   PopupAnimation="Fade">
+                                <Border Background="{DynamicResource PanelBgBrush}"
+                                        BorderBrush="{DynamicResource BorderMidBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        MinWidth="240"
+                                        MaxHeight="380"
+                                        Margin="0,2,0,0">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="16" ShadowDepth="4"
+                                                          Color="#000000" Opacity="0.6"/>
+                                    </Border.Effect>
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled">
+                                        <ItemsControl x:Name="FlagGroupsControl" Margin="6,8,6,8">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <!-- Group -->
+                                                    <StackPanel Margin="0,0,0,6">
+                                                        <!-- Group header -->
+                                                        <TextBlock Text="{Binding GroupName}"
+                                                                   Foreground="{DynamicResource AccentBrush}"
+                                                                   FontFamily="Consolas"
+                                                                   FontSize="9" FontWeight="Bold"
+                                                                   Margin="6,4,6,4"
+                                                                   Opacity="0.8"/>
+                                                        <!-- Flag items -->
+                                                        <ItemsControl ItemsSource="{Binding Flags}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Border x:Name="FlagItem"
+                                                                            CornerRadius="4"
+                                                                            Margin="2,1"
+                                                                            Padding="8,5"
+                                                                            Cursor="Hand"
+                                                                            Tag="{Binding Flag}"
+                                                                            MouseLeftButtonDown="FlagItem_Click">
+                                                                        <Border.Background>
+                                                                            <SolidColorBrush Color="{DynamicResource BorderDim}" Opacity="0"/>
+                                                                        </Border.Background>
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <TextBlock Grid.Column="0"
+                                                                                       Text="{Binding Flag}"
+                                                                                       Foreground="#e0d0d0"
+                                                                                       FontFamily="Consolas"
+                                                                                       FontSize="11"
+                                                                                       MinWidth="120"/>
+                                                                            <TextBlock Grid.Column="1"
+                                                                                       Text="{Binding Description}"
+                                                                                       Foreground="{DynamicResource TextDimBrush}"
+                                                                                       FontFamily="Consolas"
+                                                                                       FontSize="10"
+                                                                                       VerticalAlignment="Center"
+                                                                                       TextTrimming="CharacterEllipsis"/>
+                                                                        </Grid>
+                                                                        <Border.Style>
+                                                                            <Style TargetType="Border">
+                                                                                <Style.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter Property="Background" Value="{DynamicResource BorderDimBrush}"/>
+                                                                                    </Trigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </Border.Style>
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                        <!-- Separator under group (except last) -->
+                                                        <Border Height="1" Margin="6,4,6,0"
+                                                                Background="{DynamicResource BorderDimBrush}"
+                                                                Opacity="0.5"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+
                         <ComboBox x:Name="StdSelector" Width="100"
                                   Style="{StaticResource CalderaComboBox}" Margin="0,0,8,0">
                             <ComboBoxItem Content="c++23"/>
@@ -131,6 +232,105 @@
                                 Width="90" Height="30"
                                 Style="{StaticResource RunButton}"
                                 Click="RunButton_Click"/>
+                        <TextBox x:Name="McaFlagsInput" Width="200"
+                                 Style="{StaticResource CalderaTextBox}"
+                                 Text="--mcpu=native"
+                                 ToolTip="llvm-mca arguments"
+                                 Margin="12,0,0,0"/>
+
+                        <!-- MCA flag picker -->
+                        <Grid Margin="4,0,8,0">
+                            <Button x:Name="McaFlagPickerButton"
+                                    Content="▾ flags"
+                                    Width="68" Height="30"
+                                    Style="{StaticResource MenuBarButton}"
+                                    Click="McaFlagPickerButton_Click"/>
+                            <Popup x:Name="McaFlagPickerPopup"
+                                   PlacementTarget="{Binding ElementName=McaFlagPickerButton}"
+                                   Placement="Bottom"
+                                   AllowsTransparency="True"
+                                   StaysOpen="False"
+                                   PopupAnimation="Fade">
+                                <Border Background="{DynamicResource PanelBgBrush}"
+                                        BorderBrush="{DynamicResource BorderMidBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        MinWidth="280"
+                                        MaxHeight="380"
+                                        Margin="0,2,0,0">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="16" ShadowDepth="4"
+                                                          Color="#000000" Opacity="0.6"/>
+                                    </Border.Effect>
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled">
+                                        <ItemsControl x:Name="McaFlagGroupsControl" Margin="6,8,6,8">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Margin="0,0,0,6">
+                                                        <TextBlock Text="{Binding GroupName}"
+                                                                   Foreground="{DynamicResource AccentBrush}"
+                                                                   FontFamily="Consolas"
+                                                                   FontSize="9" FontWeight="Bold"
+                                                                   Margin="6,4,6,4"
+                                                                   Opacity="0.8"/>
+                                                        <ItemsControl ItemsSource="{Binding Flags}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Border CornerRadius="4"
+                                                                            Margin="2,1"
+                                                                            Padding="8,5"
+                                                                            Cursor="Hand"
+                                                                            Tag="{Binding Flag}"
+                                                                            MouseLeftButtonDown="McaFlagItem_Click">
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <TextBlock Grid.Column="0"
+                                                                                       Text="{Binding Flag}"
+                                                                                       Foreground="#e0d0d0"
+                                                                                       FontFamily="Consolas"
+                                                                                       FontSize="11"
+                                                                                       MinWidth="150"/>
+                                                                            <TextBlock Grid.Column="1"
+                                                                                       Text="{Binding Description}"
+                                                                                       Foreground="{DynamicResource TextDimBrush}"
+                                                                                       FontFamily="Consolas"
+                                                                                       FontSize="10"
+                                                                                       VerticalAlignment="Center"
+                                                                                       TextTrimming="CharacterEllipsis"/>
+                                                                        </Grid>
+                                                                        <Border.Style>
+                                                                            <Style TargetType="Border">
+                                                                                <Style.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter Property="Background" Value="{DynamicResource BorderDimBrush}"/>
+                                                                                    </Trigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </Border.Style>
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                        <Border Height="1" Margin="6,4,6,0"
+                                                                Background="{DynamicResource BorderDimBrush}"
+                                                                Opacity="0.5"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+
+                        <Button x:Name="McaButton" Content="⚙  MCA"
+                                Width="90" Height="30"
+                                Style="{StaticResource RunButton}"
+                                Click="McaButton_Click"/>
                     </StackPanel>
                 </Border>
 
@@ -191,6 +391,9 @@
                                          Background="Transparent" Foreground="#e8d8d8"
                                          BorderThickness="0" FontFamily="Consolas" FontSize="13"
                                          ShowLineNumbers="True"
+                                         WordWrap="False"
+                                         HorizontalScrollBarVisibility="Auto"
+                                         VerticalScrollBarVisibility="Auto"
                                          Padding="12"/>
                             </Grid>
                         </Border>
@@ -244,6 +447,9 @@
                                          BorderThickness="0" FontFamily="Consolas" FontSize="13"
                                          SyntaxHighlighting="ASM"
                                          ShowLineNumbers="True"
+                                         WordWrap="False"
+                                         HorizontalScrollBarVisibility="Auto"
+                                         VerticalScrollBarVisibility="Auto"
                                          IsReadOnly="True"
                                          Padding="12"/>
                             </Grid>
@@ -312,6 +518,7 @@
                                          Background="Transparent" Foreground="#e8d8d8"
                                          BorderThickness="0" FontFamily="Consolas" FontSize="12"
                                          IsReadOnly="True" AcceptsReturn="True"
+                                         TextWrapping="NoWrap"
                                          VerticalScrollBarVisibility="Auto"
                                          HorizontalScrollBarVisibility="Auto"
                                          Padding="12"/>
@@ -366,6 +573,7 @@
                                          Background="Transparent" Foreground="#e8d8d8"
                                          BorderThickness="0" FontFamily="Consolas" FontSize="12"
                                          IsReadOnly="True" AcceptsReturn="True"
+                                         TextWrapping="NoWrap"
                                          VerticalScrollBarVisibility="Auto"
                                          HorizontalScrollBarVisibility="Auto"
                                          Padding="12"/>

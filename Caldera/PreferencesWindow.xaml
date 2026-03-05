@@ -310,6 +310,27 @@
                                 Click="BrowseCl_Click"/>
                     </Grid>
 
+                    <!-- llvm-mca -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="30"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="llvm-mca"
+                                   Foreground="{DynamicResource TextDimBrush}"
+                                   FontFamily="Consolas" FontSize="11"
+                                   VerticalAlignment="Center"/>
+                        <TextBox x:Name="McaPath" Grid.Column="1"
+                                 Style="{StaticResource CalderaTextBox}"
+                                 Height="28" FontSize="11"
+                                 ToolTip="Full path to llvm-mca.exe — leave blank to use PATH"/>
+                        <Button Grid.Column="2" Content="…" Height="28"
+                                Style="{StaticResource MenuBarButton}"
+                                Padding="0" Margin="4,0,0,0"
+                                Click="BrowseMca_Click"/>
+                    </Grid>
+
                 </StackPanel>
             </ScrollViewer>
 

@@ -1,11 +1,11 @@
 ﻿<Application x:Class="Caldera.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="MainWindow.xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
         <ResourceDictionary>
 
             <FontFamily x:Key="Orbitron">/Fonts/#Orbitron</FontFamily>
+
             <!-- ═══════════════════════════════════════════
                  DYNAMIC THEME COLORS  (swapped at runtime)
             ════════════════════════════════════════════ -->
@@ -214,7 +214,6 @@
                 </Style.Triggers>
             </Style>
 
-            <!-- Menu bar button style -->
             <Style x:Key="MenuBarButton" TargetType="Button">
                 <Setter Property="Background"    Value="Transparent"/>
                 <Setter Property="Foreground"    Value="#c8c8c8"/>
@@ -247,7 +246,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-
 
             <!-- ═══════════════════════════════════════════
                  SCROLLBAR
