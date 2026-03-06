@@ -3,12 +3,40 @@
   "WorkspaceRootPath": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\unsavedchnagesdialog.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\unsavedchnagesdialog.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\unsavedchnagesdialog.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\unsavedchnagesdialog.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\asmmapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\asmmapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\compilerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\compilerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\preferencestore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\preferencestore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\tabsession.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\tabsession.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -19,24 +47,8 @@
       "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\preferenceswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\preferencestore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\preferencestore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\flagpicker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\flagpicker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\asmmapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|solutionrelative:caldera\\asmmapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3A3D1610-0C2D-494D-9614-9335CBF3EC28}|Caldera\\Caldera.csproj|c:\\stormweaver\\development\\vs 2022 stuff\\caldera\\caldera\\asmhighlightrenderer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -65,7 +77,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 11,
           "Children": [
             {
               "$type": "Bookmark",
@@ -82,6 +94,31 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "UnsavedChnagesDialog.xaml.cs",
+              "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\UnsavedChnagesDialog.xaml.cs",
+              "RelativeDocumentMoniker": "Caldera\\UnsavedChnagesDialog.xaml.cs",
+              "ToolTip": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\UnsavedChnagesDialog.xaml.cs",
+              "RelativeToolTip": "Caldera\\UnsavedChnagesDialog.xaml.cs",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAwwCwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-06T14:38:38.493Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UnsavedChnagesDialog.xaml",
+              "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\UnsavedChnagesDialog.xaml",
+              "RelativeDocumentMoniker": "Caldera\\UnsavedChnagesDialog.xaml",
+              "ToolTip": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\UnsavedChnagesDialog.xaml*",
+              "RelativeToolTip": "Caldera\\UnsavedChnagesDialog.xaml*",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-03-06T14:37:57.849Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
               "Title": "App.xaml.cs",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\App.xaml.cs",
               "RelativeDocumentMoniker": "Caldera\\App.xaml.cs",
@@ -89,63 +126,60 @@
               "RelativeToolTip": "Caldera\\App.xaml.cs",
               "ViewState": "AgIAAAEAAAAAAAAAAAAIwBkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-05T20:29:07.353Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-05T20:29:07.353Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
               "Title": "PreferenceStore.cs",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\PreferenceStore.cs",
               "RelativeDocumentMoniker": "Caldera\\PreferenceStore.cs",
               "ToolTip": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\PreferenceStore.cs",
               "RelativeToolTip": "Caldera\\PreferenceStore.cs",
-              "ViewState": "AgIAADkAAAAAAAAAAAAuwFEAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAD8AAAAAAAAAAAAuwFcAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-05T20:28:46.525Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-05T20:28:46.525Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 4,
               "Title": "CompilerService.cs",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\CompilerService.cs",
               "RelativeDocumentMoniker": "Caldera\\CompilerService.cs",
               "ToolTip": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\CompilerService.cs",
               "RelativeToolTip": "Caldera\\CompilerService.cs",
-              "ViewState": "AgIAAN4BAAAAAAAAAAAIwPYBAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAGYBAAAAAAAAAAAswHEBAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-05T19:54:31.346Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 3,
               "Title": "AsmMapper.cs",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\AsmMapper.cs",
               "RelativeDocumentMoniker": "Caldera\\AsmMapper.cs",
               "ToolTip": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\AsmMapper.cs",
               "RelativeToolTip": "Caldera\\AsmMapper.cs",
-              "ViewState": "AgIAADcAAAAAAAAAAAAIwEUAAAAxAAAAAAAAAA==",
+              "ViewState": "AgIAAP8AAAAAAAAAAAAIwAgBAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-05T19:24:09.539Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 13,
               "Title": "PreferencesWindow.xaml",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\PreferencesWindow.xaml",
               "RelativeDocumentMoniker": "Caldera\\PreferencesWindow.xaml",
               "ToolTip": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\PreferencesWindow.xaml",
               "RelativeToolTip": "Caldera\\PreferencesWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-03-05T17:00:32.732Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-05T17:00:32.732Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 5,
               "Title": "App.xaml",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\App.xaml",
               "RelativeDocumentMoniker": "Caldera\\App.xaml",
@@ -157,7 +191,32 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "Caldera\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\MainWindow.xaml.cs",
+              "RelativeToolTip": "Caldera\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAOMCAAAAAAAAAAAYwOcCAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-05T08:37:38.171Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "TabSession.cs",
+              "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\TabSession.cs",
+              "RelativeDocumentMoniker": "Caldera\\TabSession.cs",
+              "ToolTip": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\TabSession.cs",
+              "RelativeToolTip": "Caldera\\TabSession.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAAAuwB8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-05T21:02:12.768Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
               "Title": "AssemblyInfo.cs",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\AssemblyInfo.cs",
               "RelativeDocumentMoniker": "Caldera\\AssemblyInfo.cs",
@@ -169,19 +228,6 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "MainWindow.xaml.cs",
-              "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\MainWindow.xaml.cs",
-              "RelativeDocumentMoniker": "Caldera\\MainWindow.xaml.cs",
-              "ToolTip": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\MainWindow.xaml.cs",
-              "RelativeToolTip": "Caldera\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAKYBAAAAAAAAAAAcwLIBAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-05T08:37:38.171Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 6,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\MainWindow.xaml",
@@ -189,12 +235,11 @@
               "ToolTip": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\MainWindow.xaml",
               "RelativeToolTip": "Caldera\\MainWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-03-05T08:37:42.352Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-05T08:37:42.352Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 10,
               "Title": "PreferencesWindow.xaml.cs",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\PreferencesWindow.xaml.cs",
               "RelativeDocumentMoniker": "Caldera\\PreferencesWindow.xaml.cs",
@@ -202,12 +247,11 @@
               "RelativeToolTip": "Caldera\\PreferencesWindow.xaml.cs",
               "ViewState": "AgIAAAsBAAAAAAAAAAAuwCMBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-05T17:00:50.429Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-05T17:00:50.429Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 11,
               "Title": "FlagPicker.cs",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\FlagPicker.cs",
               "RelativeDocumentMoniker": "Caldera\\FlagPicker.cs",
@@ -215,12 +259,11 @@
               "RelativeToolTip": "Caldera\\FlagPicker.cs",
               "ViewState": "AgIAALMAAAAAAAAAAAAuwMUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-05T20:05:02.385Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-05T20:05:02.385Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 14,
               "Title": "Microsoft.Common.CurrentVersion.targets",
               "DocumentMoniker": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
               "RelativeDocumentMoniker": "..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
@@ -228,12 +271,11 @@
               "RelativeToolTip": "..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
               "ViewState": "AgIAACETAAAAAAAAAAAhwBEVAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003801|",
-              "WhenOpened": "2026-03-05T19:10:05.141Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-05T19:10:05.141Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 12,
               "Title": "AsmHighlightRenderer.cs",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\AsmHighlightRenderer.cs",
               "RelativeDocumentMoniker": "Caldera\\AsmHighlightRenderer.cs",
@@ -241,12 +283,11 @@
               "RelativeToolTip": "Caldera\\AsmHighlightRenderer.cs",
               "ViewState": "AgIAAAkAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-05T19:24:32.284Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-05T19:24:32.284Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 15,
               "Title": "GridLengthAnimation.cs",
               "DocumentMoniker": "C:\\StormWeaver\\Development\\VS 2022 Stuff\\Caldera\\Caldera\\GridLengthAnimation.cs",
               "RelativeDocumentMoniker": "Caldera\\GridLengthAnimation.cs",

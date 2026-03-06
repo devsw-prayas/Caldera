@@ -75,6 +75,12 @@
                             <TextBlock Text="//  compiler explorer"
                                        Foreground="#7a5050"
                                        FontSize="11" FontFamily="Consolas" VerticalAlignment="Center"/>
+                            <TextBlock Text=" · "
+                                       Foreground="#7a5050"
+                                       FontSize="11" FontFamily="Consolas" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="TitleFileLabel"
+                                       Foreground="#7a5050"
+                                       FontSize="11" FontFamily="Consolas" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <Button Content="—" Style="{StaticResource WindowButton}" Click="MinimizeButton_Click"/>
@@ -90,6 +96,32 @@
                         <SolidColorBrush Color="{DynamicResource BorderDim}"/>
                     </Border.BorderBrush>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
+                        <!-- File menu -->
+                        <Grid>
+                            <Button x:Name="FileMenuButton" Content="File"
+                                    Style="{StaticResource MenuBarButton}"
+                                    Click="FileMenuButton_Click"/>
+                            <Popup x:Name="FileMenuPopup" StaysOpen="False"
+                                   PlacementTarget="{Binding ElementName=FileMenuButton}"
+                                   Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade">
+                                <Border Background="{DynamicResource PanelBgBrush}"
+                                        BorderBrush="{DynamicResource BorderMidBrush}"
+                                        BorderThickness="1" CornerRadius="8"
+                                        MinWidth="200" Margin="0,2,0,0">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="16" ShadowDepth="4" Color="#000000" Opacity="0.6"/>
+                                    </Border.Effect>
+                                    <StackPanel Margin="4,6">
+                                        <Button Content="New Tab          Ctrl+T" Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="NewFile_Click"/>
+                                        <Button Content="Open...          Ctrl+O" Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="OpenFile_Click"/>
+                                        <Button Content="Save             Ctrl+S" Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="SaveFile_Click"/>
+                                        <Button Content="Save As..."              Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="SaveAsFile_Click"/>
+                                        <Border Height="1" Margin="8,4" Background="{DynamicResource BorderDimBrush}" Opacity="0.5"/>
+                                        <Button Content="Share on Godbolt ↗"     Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="GodboltButton_Click"/>
+                                    </StackPanel>
+                                </Border>
+                            </Popup>
+                        </Grid>
                         <Button Content="Preferences" Style="{StaticResource MenuBarButton}"
                                 Click="PreferencesMenuButton_Click"/>
                         <Button Content="Help" Style="{StaticResource MenuBarButton}"
@@ -331,6 +363,11 @@
                                 Width="90" Height="30"
                                 Style="{StaticResource RunButton}"
                                 Click="McaButton_Click"/>
+                        <Button Content="✕  Clear"
+                                Width="80" Height="30"
+                                Style="{StaticResource MenuBarButton}"
+                                Margin="12,0,0,0"
+                                Click="ClearButton_Click"/>
                     </StackPanel>
                 </Border>
 
@@ -350,7 +387,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- left: source -->
+                        <!-- left: source tabs -->
                         <Border Grid.Column="0" Margin="12,8,6,12" CornerRadius="10" BorderThickness="1">
                             <Border.BorderBrush>
                                 <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.3"/>
@@ -359,6 +396,7 @@
                                 <SolidColorBrush Color="{DynamicResource PanelBgDark}" Opacity="0.4"/>
                             </Border.Background>
                             <Grid>
+                                <!-- Tab strip header -->
                                 <Border Height="36" VerticalAlignment="Top"
                                         CornerRadius="10,10,0,0" BorderThickness="0,0,0,1">
                                     <Border.Background>
@@ -367,23 +405,88 @@
                                     <Border.BorderBrush>
                                         <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.15"/>
                                     </Border.BorderBrush>
-                                    <Grid Margin="12,0">
+                                    <Grid Margin="8,0">
+                                        <!-- Tabs row -->
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                                      VerticalScrollBarVisibility="Disabled"
+                                                      HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <StackPanel x:Name="TabStrip" Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
+                                                <ListBox x:Name="SourceTabControl"
+                                                         SelectionChanged="SourceTabControl_SelectionChanged"
+                                                         Background="Transparent" BorderThickness="0"
+                                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                                    <ListBox.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <StackPanel Orientation="Horizontal"/>
+                                                        </ItemsPanelTemplate>
+                                                    </ListBox.ItemsPanel>
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid>
+                                                                <Border x:Name="TabBg" CornerRadius="4,4,0,0"
+                                                                        Padding="10,4,6,4" Margin="2,0,0,0">
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Grid.Column="0"
+                                                                                   Text="{Binding DisplayName}"
+                                                                                   Foreground="#c8c8c8"
+                                                                                   FontFamily="Consolas"
+                                                                                   FontSize="11"
+                                                                                   VerticalAlignment="Center"
+                                                                                   MaxWidth="120"
+                                                                                   TextTrimming="CharacterEllipsis"/>
+                                                                        <Button Grid.Column="1"
+                                                                                Content="✕"
+                                                                                DataContext="{Binding}"
+                                                                                Click="CloseTab_Click"
+                                                                                Background="Transparent"
+                                                                                BorderThickness="0"
+                                                                                Foreground="#666"
+                                                                                FontSize="9"
+                                                                                Padding="4,0,0,0"
+                                                                                Cursor="Hand"
+                                                                                VerticalAlignment="Center"/>
+                                                                    </Grid>
+                                                                </Border>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                    <ListBox.ItemContainerStyle>
+                                                        <Style TargetType="ListBoxItem">
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                            <Setter Property="Padding" Value="0"/>
+                                                            <Setter Property="Margin" Value="0"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="ListBoxItem">
+                                                                        <ContentPresenter/>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </ListBox.ItemContainerStyle>
+                                                </ListBox>
+                                                <!-- New tab button -->
+                                                <Button Content="＋" Style="{StaticResource MenuBarButton}"
+                                                        Width="28" Padding="0"
+                                                        Click="NewTabButton_Click"
+                                                        VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </ScrollViewer>
+                                        <!-- C++ badge -->
                                         <Border CornerRadius="3" Padding="6,2"
-                                                HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <Border.Background>
                                                 <SolidColorBrush Color="{DynamicResource AccentColor}"/>
                                             </Border.Background>
-                                            <Border.Effect>
-                                                <DropShadowEffect Color="{DynamicResource AccentGlowColor}"
-                                                                  BlurRadius="10" ShadowDepth="0" Opacity="0.8"/>
-                                            </Border.Effect>
                                             <TextBlock Text="C++" Foreground="#ffffff"
                                                        FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
                                         </Border>
-                                        <TextBlock Text="source.cpp"
-                                                   Foreground="{DynamicResource TextDimBrush}"
-                                                   FontSize="11" FontFamily="Consolas"
-                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                                 <avalon:TextEditor x:Name="SourceEditor"
@@ -439,6 +542,12 @@
                                                    Foreground="{DynamicResource TextDimBrush}"
                                                    FontSize="11" FontFamily="Consolas"
                                                    HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        <Button Content="⎘ copy"
+                                                HorizontalAlignment="Right"
+                                                Margin="0,0,80,0"
+                                                Style="{StaticResource MenuBarButton}"
+                                                FontSize="10" Height="22"
+                                                Click="CopyAsmButton_Click"/>
                                     </Grid>
                                 </Border>
                                 <avalon:TextEditor x:Name="AsmOutput"

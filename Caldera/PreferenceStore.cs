@@ -20,6 +20,12 @@ namespace Caldera
         public string GppPath { get; set; } = string.Empty;
         public string ClPath { get; set; } = string.Empty;
         public string McaPath { get; set; } = string.Empty;
+
+        // Toolbar state
+        public string Compiler { get; set; } = "clang++";
+        public string Std { get; set; } = "c++20";
+        public string CompilerFlags { get; set; } = "-O2 -march=native";
+        public string McaFlags { get; set; } = "--mcpu=native";
     }
 
     // ── Store ─────────────────────────────────────────────────────────────────
