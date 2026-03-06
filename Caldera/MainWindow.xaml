@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:avalon="http://icsharpcode.net/sharpdevelop/avalonedit"
+        xmlns:local="clr-namespace:Caldera"
         Title="Caldera"
         Height="800"
         Width="1400"
@@ -61,7 +62,7 @@
                         MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                     <Grid Margin="16,0">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                            <TextBlock Text="🌋" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
                             <TextBlock Foreground="{DynamicResource AccentBrush}"
                                        FontSize="14" FontWeight="Black"
                                        FontFamily="{StaticResource Orbitron}"
@@ -74,13 +75,13 @@
                             </TextBlock>
                             <TextBlock Text="//  compiler explorer"
                                        Foreground="#7a5050"
-                                       FontSize="11" FontFamily="Consolas" VerticalAlignment="Center"/>
+                                       FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
                             <TextBlock Text=" · "
                                        Foreground="#7a5050"
-                                       FontSize="11" FontFamily="Consolas" VerticalAlignment="Center"/>
+                                       FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
                             <TextBlock x:Name="TitleFileLabel"
                                        Foreground="#7a5050"
-                                       FontSize="11" FontFamily="Consolas" VerticalAlignment="Center"/>
+                                       FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <Button Content="—" Style="{StaticResource WindowButton}" Click="MinimizeButton_Click"/>
@@ -217,7 +218,7 @@
                                                                                        Text="{Binding Flag}"
                                                                                        Foreground="#e0d0d0"
                                                                                        FontFamily="Consolas"
-                                                                                       FontSize="11"
+                                                                                       FontSize="13"
                                                                                        MinWidth="120"/>
                                                                             <TextBlock Grid.Column="1"
                                                                                        Text="{Binding Description}"
@@ -324,7 +325,7 @@
                                                                                        Text="{Binding Flag}"
                                                                                        Foreground="#e0d0d0"
                                                                                        FontFamily="Consolas"
-                                                                                       FontSize="11"
+                                                                                       FontSize="13"
                                                                                        MinWidth="150"/>
                                                                             <TextBlock Grid.Column="1"
                                                                                        Text="{Binding Description}"
@@ -385,6 +386,8 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="5"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="5" x:Name="OpcodeSplitterCol"/>
+                            <ColumnDefinition x:Name="OpcodeCol" Width="0" MinWidth="0" MaxWidth="600"/>
                         </Grid.ColumnDefinitions>
 
                         <!-- left: source tabs -->
@@ -436,7 +439,7 @@
                                                                                    Text="{Binding DisplayName}"
                                                                                    Foreground="#c8c8c8"
                                                                                    FontFamily="Consolas"
-                                                                                   FontSize="11"
+                                                                                   FontSize="13"
                                                                                    VerticalAlignment="Center"
                                                                                    MaxWidth="120"
                                                                                    TextTrimming="CharacterEllipsis"/>
@@ -492,7 +495,7 @@
                                 <avalon:TextEditor x:Name="SourceEditor"
                                          Margin="0,36,0,0"
                                          Background="Transparent" Foreground="#e8d8d8"
-                                         BorderThickness="0" FontFamily="Consolas" FontSize="13"
+                                         BorderThickness="0" FontFamily="Consolas" FontSize="14"
                                          ShowLineNumbers="True"
                                          WordWrap="False"
                                          HorizontalScrollBarVisibility="Auto"
@@ -540,7 +543,7 @@
                                         </Border>
                                         <TextBlock Text="output.asm"
                                                    Foreground="{DynamicResource TextDimBrush}"
-                                                   FontSize="11" FontFamily="Consolas"
+                                                   FontSize="13" FontFamily="Consolas"
                                                    HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         <Button Content="⎘ copy"
                                                 HorizontalAlignment="Right"
@@ -548,12 +551,19 @@
                                                 Style="{StaticResource MenuBarButton}"
                                                 FontSize="10" Height="22"
                                                 Click="CopyAsmButton_Click"/>
+                                        <Button x:Name="OpcodeRefToggle"
+                                                Content="⊞ ref"
+                                                HorizontalAlignment="Right"
+                                                Margin="0,0,140,0"
+                                                Style="{StaticResource MenuBarButton}"
+                                                FontSize="10" Height="22"
+                                                Click="OpcodeRefToggle_Click"/>
                                     </Grid>
                                 </Border>
                                 <avalon:TextEditor x:Name="AsmOutput"
                                          Margin="0,36,0,0"
                                          Background="Transparent" Foreground="#e8d8d8"
-                                         BorderThickness="0" FontFamily="Consolas" FontSize="13"
+                                         BorderThickness="0" FontFamily="Consolas" FontSize="14"
                                          SyntaxHighlighting="ASM"
                                          ShowLineNumbers="True"
                                          WordWrap="False"
@@ -563,6 +573,19 @@
                                          Padding="12"/>
                             </Grid>
                         </Border>
+                        <!-- opcode splitter -->
+                        <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch"
+                                      x:Name="OpcodePanelSplitter">
+                            <GridSplitter.Background>
+                                <SolidColorBrush Color="{DynamicResource BorderDim}"/>
+                            </GridSplitter.Background>
+                        </GridSplitter>
+
+                        <!-- opcode reference panel -->
+                        <local:OpcodePanel x:Name="OpcodeRefPanel"
+                                           Grid.Column="4"
+                                           Margin="0,8,12,12"/>
+
                     </Grid>
 
                     <!-- ── HORIZONTAL SPLITTER (hidden until output opens) ── -->
@@ -618,18 +641,18 @@
                                         </Border>
                                         <TextBlock Text="compiler output"
                                                    Foreground="{DynamicResource TextDimBrush}"
-                                                   FontSize="11" FontFamily="Consolas"
+                                                   FontSize="13" FontFamily="Consolas"
                                                    HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                                 <TextBox x:Name="CompilerOutput"
                                          Margin="0,36,0,0"
                                          Background="Transparent" Foreground="#e8d8d8"
-                                         BorderThickness="0" FontFamily="Consolas" FontSize="12"
+                                         BorderThickness="0" FontFamily="Consolas" FontSize="13"
                                          IsReadOnly="True" AcceptsReturn="True"
-                                         TextWrapping="NoWrap"
+                                         TextWrapping="Wrap"
                                          VerticalScrollBarVisibility="Auto"
-                                         HorizontalScrollBarVisibility="Auto"
+                                         HorizontalScrollBarVisibility="Disabled"
                                          Padding="12"/>
                             </Grid>
                         </Border>
@@ -673,18 +696,18 @@
                                         </Border>
                                         <TextBlock Text="analysis"
                                                    Foreground="{DynamicResource TextDimBrush}"
-                                                   FontSize="11" FontFamily="Consolas"
+                                                   FontSize="13" FontFamily="Consolas"
                                                    HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                                 <TextBox x:Name="McaOutput"
                                          Margin="0,36,0,0"
                                          Background="Transparent" Foreground="#e8d8d8"
-                                         BorderThickness="0" FontFamily="Consolas" FontSize="12"
+                                         BorderThickness="0" FontFamily="Consolas" FontSize="13"
                                          IsReadOnly="True" AcceptsReturn="True"
-                                         TextWrapping="NoWrap"
+                                         TextWrapping="Wrap"
                                          VerticalScrollBarVisibility="Auto"
-                                         HorizontalScrollBarVisibility="Auto"
+                                         HorizontalScrollBarVisibility="Disabled"
                                          Padding="12"/>
                             </Grid>
                         </Border>

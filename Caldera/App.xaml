@@ -5,6 +5,7 @@
         <ResourceDictionary>
 
             <FontFamily x:Key="Orbitron">/Fonts/#Orbitron</FontFamily>
+            <FontFamily x:Key="JetBrainsMono">/Fonts/#JetBrains Mono</FontFamily>
 
             <!-- ═══════════════════════════════════════════
                  DYNAMIC THEME COLORS  (swapped at runtime)
@@ -36,8 +37,8 @@
                 <Setter Property="Foreground"       Value="#e0d0d0"/>
                 <Setter Property="BorderBrush"      Value="{DynamicResource BorderMidBrush}"/>
                 <Setter Property="BorderThickness"  Value="1"/>
-                <Setter Property="FontFamily"       Value="Consolas"/>
-                <Setter Property="FontSize"         Value="12"/>
+                <Setter Property="FontFamily"       Value="JetBrains Mono"/>
+                <Setter Property="FontSize"         Value="13"/>
                 <Setter Property="Height"           Value="30"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -97,8 +98,8 @@
             <Style TargetType="ComboBoxItem">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground"  Value="#e0d0d0"/>
-                <Setter Property="FontFamily"  Value="Consolas"/>
-                <Setter Property="FontSize"    Value="12"/>
+                <Setter Property="FontFamily"  Value="JetBrains Mono"/>
+                <Setter Property="FontSize"    Value="13"/>
                 <Setter Property="Padding"     Value="8,6"/>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
@@ -117,9 +118,9 @@
                 <Setter Property="Foreground"              Value="#e0d0d0"/>
                 <Setter Property="BorderBrush"             Value="{DynamicResource BorderMidBrush}"/>
                 <Setter Property="BorderThickness"         Value="1"/>
-                <Setter Property="FontFamily"              Value="Consolas"/>
-                <Setter Property="FontSize"                Value="12"/>
-                <Setter Property="Height"                  Value="30"/>
+                <Setter Property="FontFamily"              Value="JetBrains Mono"/>
+                <Setter Property="FontSize"                Value="13"/>
+                <Setter Property="Height"                  Value="32"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="CaretBrush"              Value="{DynamicResource AccentBrush}"/>
                 <Setter Property="Template">
@@ -152,8 +153,8 @@
                 <Setter Property="Foreground"    Value="#e0d0d0"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="FontWeight"    Value="Bold"/>
-                <Setter Property="FontSize"      Value="12"/>
-                <Setter Property="FontFamily"    Value="Consolas"/>
+                <Setter Property="FontSize"      Value="13"/>
+                <Setter Property="FontFamily"    Value="JetBrains Mono"/>
                 <Setter Property="Cursor"        Value="Hand"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -218,10 +219,10 @@
                 <Setter Property="Background"    Value="Transparent"/>
                 <Setter Property="Foreground"    Value="#c8c8c8"/>
                 <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="FontFamily"    Value="Consolas"/>
-                <Setter Property="FontSize"      Value="11"/>
+                <Setter Property="FontFamily"    Value="JetBrains Mono"/>
+                <Setter Property="FontSize"      Value="12"/>
                 <Setter Property="Cursor"        Value="Hand"/>
-                <Setter Property="Height"        Value="24"/>
+                <Setter Property="Height"        Value="26"/>
                 <Setter Property="Padding"       Value="10,0"/>
                 <Setter Property="Template">
                     <Setter.Value>

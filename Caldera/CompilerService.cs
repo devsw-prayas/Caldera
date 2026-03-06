@@ -370,8 +370,9 @@ namespace Caldera
             }
             else if (!hasSourceTags && !isMsvc)
             {
-                // Clang-Windows fallback: parse the *display* ASM, not raw.
-                asmMap = AsmMapper.Parse(displayAsm, kind, sourceText, displayAsm);
+                // Clang-Windows fallback: AsmMapper walks displayAsm and returns
+                // display line numbers directly — no remapping or offset needed.
+                asmMap = AsmMapper.Parse(rawAsm, kind, sourceText, displayAsm);
             }
             else
             {
@@ -956,6 +957,10 @@ namespace Caldera
             @"|\.intel_syntax\b|\.att_syntax\b" +
             @"|\.Lfunc_begin|\.Lfunc_end|\.Ltmp" +
             @"|\.def\b|\.scl\b|\.endef\b" +
+            // GCC verbose-asm block markers
+            @"|/APP|/NO_APP|#APP|#NO_APP" +
+            // GCC line markers:  # 3 "file.cpp" 1
+            @"|#\s+\d+\s+""[^""]*""" +
             @"|#\s+\S+:\d+" +   // standalone verbose-asm source-location comment lines
             @")",
             RegexOptions.Compiled);

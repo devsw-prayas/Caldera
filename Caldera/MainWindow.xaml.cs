@@ -46,6 +46,9 @@ namespace Caldera
         // ── ASM highlight ─────────────────────────────────────────────────────
         private AsmHighlightRenderer? _asmHighlighter;
 
+        // ── Opcode reference panel ────────────────────────────────────────────
+        private bool _opcodePanelOpen = false;
+
         // ── Run state ─────────────────────────────────────────────────────────
         private bool _isRunning = false;
         private bool _mcaRunning = false;
@@ -443,6 +446,7 @@ namespace Caldera
             _asmHighlighter = new AsmHighlightRenderer(AsmOutput, accent);
             AsmOutput.TextArea.TextView.BackgroundRenderers.Add(_asmHighlighter);
             SourceEditor.TextArea.Caret.PositionChanged += OnSourceCaretMoved;
+            AsmOutput.TextArea.Caret.PositionChanged += OnAsmCaretMoved;
             ThemeEditors();
         }
 
@@ -542,6 +546,57 @@ namespace Caldera
 
         private void PreferencesMenuButton_Click(object sender, RoutedEventArgs e) =>
             new PreferencesWindow { Owner = this }.ShowDialog();
+
+        // ── Opcode reference panel ───────────────────────────────────────────
+
+        private void OnAsmCaretMoved(object? sender, EventArgs e)
+        {
+            if (!_opcodePanelOpen) return;
+            var line = AsmOutput.Document?.GetLineByNumber(AsmOutput.TextArea.Caret.Line);
+            if (line == null) { OpcodeRefPanel.Show(null); return; }
+            var text = AsmOutput.Document.GetText(line.Offset, line.Length).TrimStart();
+            var mnemonic = ExtractMnemonic(text);
+            OpcodeRefPanel.Show(mnemonic);
+        }
+
+        private static string? ExtractMnemonic(string asmLine)
+        {
+            if (string.IsNullOrWhiteSpace(asmLine)) return null;
+            // Skip labels (end with ':') and directives
+            if (asmLine.TrimEnd().EndsWith(':') || asmLine.StartsWith('.') || asmLine.StartsWith('#') || asmLine.StartsWith(';'))
+                return null;
+            // First token is the mnemonic — stop at space/tab
+            int end = 0;
+            while (end < asmLine.Length && asmLine[end] != ' ' && asmLine[end] != '	')
+                end++;
+            var raw = asmLine[..end].ToUpperInvariant();
+            // Strip size suffixes that assemblers sometimes add (MOVQ→MOV etc.)
+            // but preserve known mnemonics like MOVAPS, MOVZX, etc.
+            return raw;
+        }
+
+        private void OpcodeRefToggle_Click(object sender, RoutedEventArgs e)
+        {
+            _opcodePanelOpen = !_opcodePanelOpen;
+
+            var targetWidth = _opcodePanelOpen ? new GridLength(300) : new GridLength(0);
+            var anim = new GridLengthAnimation
+            {
+                From = OpcodeCol.Width,
+                To = targetWidth,
+                Duration = new Duration(System.TimeSpan.FromMilliseconds(200)),
+                EasingFunction = new System.Windows.Media.Animation.CubicEase
+                { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut }
+            };
+            OpcodeCol.BeginAnimation(ColumnDefinition.WidthProperty, anim);
+
+            OpcodeRefToggle.Content = _opcodePanelOpen ? "⊟ ref" : "⊞ ref";
+
+            if (_opcodePanelOpen)
+                OnAsmCaretMoved(null, EventArgs.Empty);
+            else
+                OpcodeRefPanel.Show(null);
+        }
 
         // ── Run ───────────────────────────────────────────────────────────────
 
