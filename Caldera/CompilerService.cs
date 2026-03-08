@@ -15,6 +15,7 @@ namespace Caldera
         public bool Success { get; init; }
         public string CompilerOutput { get; init; } = string.Empty;
         public string AsmOutput { get; init; } = string.Empty;
+        public string RawAsmOutput { get; init; } = string.Empty;
         public AsmMapper.CompilerKind CompilerKind { get; init; }
         public Dictionary<int, List<int>> AsmMap { get; init; } = new();
     }
@@ -63,9 +64,9 @@ namespace Caldera
             }
             else
             {
-                // __attribute__((used)) prevents the wrapper from being dead-stripped.
-                // The volatile asm markers are emitted verbatim into the .s output
-                // regardless of optimisation level.
+                // volatile asm markers survive the optimiser on Linux/ELF targets.
+                // Windows clang (MSVC ABI) is detected at runtime and bypasses
+                // extraction entirely — the formatter handles the full raw output.
                 return
                     $"__attribute__((used)) static void __caldera_wrap(){{\n" +
                     $"    __asm__ volatile(\"# {GccBeginMarker}\");\n" +
@@ -91,7 +92,7 @@ namespace Caldera
         {
             var lines = asm.Split('\n');
 
-            // Find CALDERA_BEGIN and CALDERA_END marker lines
+            // ── Strategy A: volatile asm comment markers (Linux clang/g++) ───────
             int beginIdx = -1, endIdx = -1;
             for (int i = 0; i < lines.Length; i++)
             {
@@ -101,55 +102,72 @@ namespace Caldera
                 { endIdx = i; break; }
             }
 
+            // ── Strategy B: noinline extern "C" sentinel labels (Windows clang) ──
+            // Falls back when volatile asm comments were optimised away.
+            // Windows clang emits labels in quoted COFF form: "CALDERA_BEGIN_fn":
             if (beginIdx < 0 || endIdx <= beginIdx)
-                return asm.Trim(); // markers not found — return everything
+            {
+                beginIdx = -1; endIdx = -1;
+                var beginToken = GccBeginMarker + "_fn";
+                var endToken = GccEndMarker + "_fn";
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var t = lines[i].TrimStart().Trim('"').TrimEnd(':', '"').Trim();
+                    if (beginIdx < 0 && t.Equals(beginToken, StringComparison.Ordinal))
+                        beginIdx = i;
+                    else if (beginIdx >= 0 && t.Equals(endToken, StringComparison.Ordinal))
+                    { endIdx = i; break; }
+                }
+            }
 
-            // The structure around our markers looks like:
-            //
-            //   __caldera_wrap:               ← some function label line
-            //   # CALDERA_BEGIN               ← beginIdx  (the volatile asm comment)
-            //       ret                       ← epilogue of the wrapper fn — SKIP THIS
-            //   (blank / .size / .p2align)
-            //   _Z3addyy:                     ← first user function label
-            //       lea  rax, [rcx+rdx]
-            //       ret
-            //   main:
-            //       ...
-            //   __caldera_wrap_end:           ← wrapper end label — STOP before here
-            //   # CALDERA_END                 ← endIdx
-            //       ret
-            //
-            // We want everything from the first non-directive non-blank line AFTER
-            // the __caldera_wrap function up to (not including) __caldera_wrap_end.
+            if (beginIdx < 0 || endIdx <= beginIdx)
+                return asm.Trim(); // no markers found at all — return everything
 
-            // Scan forward from beginIdx+1 to find the start of the user region:
-            // skip the trailing ret/epilogue of __caldera_wrap and any directives.
+            // Scan forward past everything until the first real user function label.
+            // A real label is: non-indented, ends with ':', not a directive, not caldera.
             int regionStart = beginIdx + 1;
             while (regionStart < endIdx)
             {
                 var t = lines[regionStart].TrimStart();
-                // A function label: non-indented, ends with ':', not a directive
-                if (!string.IsNullOrWhiteSpace(t) && t.EndsWith(':') &&
-                    !t.StartsWith('.') && !t.StartsWith('#'))
-                    break;
+                bool isRealLabel = !string.IsNullOrWhiteSpace(t)
+                    && !lines[regionStart].StartsWith(' ')
+                    && !lines[regionStart].StartsWith('\t')
+                    && t.EndsWith(':')
+                    && !t.StartsWith('.')
+                    && !t.StartsWith('#')
+                    && !t.Contains("caldera", StringComparison.OrdinalIgnoreCase);
+                if (isRealLabel) break;
                 regionStart++;
             }
 
-            // Scan backward from endIdx-1 to find the label of __caldera_wrap_end
-            // so we can exclude it and everything after it.
+            // Scan backward to find the __caldera_wrap_end label, then keep
+            // walking backward to drop its entire body (e.g. the ret from the
+            // empty function) until we reach the last real user instruction.
             int regionEnd = endIdx - 1;
-            // Walk back past the label that owns the CALDERA_END marker
+            // First: find the wrap_end label (or any caldera label)
             while (regionEnd > regionStart)
             {
                 var t = lines[regionEnd].TrimStart();
-                if (!string.IsNullOrWhiteSpace(t) && t.EndsWith(':') &&
-                    !t.StartsWith('.') && !t.StartsWith('#'))
+                bool isCalderaLabel = t.EndsWith(':') &&
+                    (t.Contains("caldera", StringComparison.OrdinalIgnoreCase) ||
+                     t.Contains(GccEndMarker, StringComparison.OrdinalIgnoreCase));
+                if (isCalderaLabel)
                 {
-                    // This is the __caldera_wrap_end: label — exclude it and everything after
-                    regionEnd--;
+                    regionEnd--; // step before the label
                     break;
                 }
                 regionEnd--;
+            }
+            // Second: skip any instructions that belonged to that wrapper body
+            // (walk backward past blank lines and single instructions like ret)
+            while (regionEnd > regionStart)
+            {
+                var t = lines[regionEnd].TrimStart();
+                if (string.IsNullOrWhiteSpace(t)) { regionEnd--; continue; }
+                // If it's another caldera label, keep trimming
+                if (t.EndsWith(':') && t.Contains("caldera", StringComparison.OrdinalIgnoreCase))
+                { regionEnd--; continue; }
+                break;
             }
 
             var sb = new StringBuilder();
@@ -158,7 +176,7 @@ namespace Caldera
 
             var result = sb.ToString().Trim();
 
-            // Safety fallback: if we got nothing, return the raw slice
+            // Safety fallback: raw slice between markers
             if (string.IsNullOrWhiteSpace(result))
             {
                 sb.Clear();
@@ -307,10 +325,6 @@ namespace Caldera
             {
                 var exe = CompilerPaths.Resolve(compiler);
                 var cleanFlags = Regex.Replace(flags, @"-std=\S+\s*", "").Trim();
-
-                // -fno-asynchronous-unwind-tables  → removes .cfi_startproc / .cfi_endproc
-                // -fno-dwarf2-cfi-asm              → removes remaining .cfi_ annotations (clang)
-                // -fno-stack-protector             → removes __stack_chk_fail calls
                 var args = $"-std={std} {cleanFlags} -S -fverbose-asm -masm=intel " +
                            $"-fno-asynchronous-unwind-tables -fno-dwarf2-cfi-asm " +
                            $"-fno-stack-protector -o - \"{srcFile}\"";
@@ -322,7 +336,20 @@ namespace Caldera
                 compilerOutput = $"{compiler} {args}\n{stderr}";
 
                 if (exitCode == 0)
-                    rawAsm = ExtractSentinelRegion(stdout, isMsvc: false);
+                {
+                    // Detect Windows clang (MSVC ABI): it emits COFF-style quoted labels
+                    // and drops volatile asm markers at -O2/-O3, making sentinel extraction
+                    // unreliable. In that case skip extraction — the formatter strips all
+                    // noise from the full output directly.
+                    bool isWindowsClang = stdout.Contains("\"CALDERA_BEGIN_fn\"") ||
+                                         (!stdout.Contains(GccBeginMarker) &&
+                                          stdout.Contains("\"\t.text\"") ||
+                                          Regex.IsMatch(stdout, @"^""[^""]+"":", RegexOptions.Multiline));
+
+                    rawAsm = isWindowsClang
+                        ? stdout  // skip sentinel extraction — formatter handles full output
+                        : ExtractSentinelRegion(stdout, isMsvc: false);
+                }
             }
 
             // ── Cleanup ───────────────────────────────────────────────────────
@@ -384,11 +411,29 @@ namespace Caldera
                     rawAsm, displayAsm, srcLineOffset);
             }
 
+            // Wrap the display ASM with boundary labels so the viewer shows
+            // where the user's source begins and ends.
+            if (!string.IsNullOrWhiteSpace(displayAsm))
+            {
+                var header = "; ────── source file begin ──────\n";
+                var footer = "\n; ────── source file end ────────";
+
+                // The header adds 1 line before all user code, so every display
+                // line number in asmMap must be shifted forward by 1.
+                var shiftedMap = new Dictionary<int, List<int>>();
+                foreach (var (srcLine, dispLines) in asmMap)
+                    shiftedMap[srcLine] = dispLines.ConvertAll(l => l + 1);
+                asmMap = shiftedMap;
+
+                displayAsm = header + displayAsm + footer;
+            }
+
             return new CompileResult
             {
                 Success = exitCode == 0,
                 CompilerOutput = compilerOutput,
                 AsmOutput = displayAsm,
+                RawAsmOutput = rawAsm,
                 CompilerKind = kind,
                 AsmMap = asmMap,
             };
@@ -548,38 +593,49 @@ namespace Caldera
 
         // ── GAS/clang display formatter ───────────────────────────────────────
 
-        // GAS directives to drop entirely from display
+        // All GAS directives and assembler metadata dropped from display.
         private static readonly Regex DisplayDropLine = new(
             @"^\s*(" +
             @"\.file\b|\.text\b|\.data\b|\.bss\b|\.section\b" +
-            @"|\.globl\b|\.global\b|\.weak\b" +
+            @"|\.globl\b|\.global\b|\.weak\b|\.local\b|\.hidden\b|\.protected\b" +
+            @"|\.comm\b|\.lcomm\b" +
             @"|\.type\b|\.size\b" +
-            @"|\.p2align\b|\.align\b|\.balign\b" +
+            @"|\.p2align\b|\.align\b|\.balign\b|\.nops\b" +
             @"|\.cfi_" +
-            @"|\.ident\b|\.addrsig\b|\.addrsig_sym\b" +
+            @"|\.ident\b|\.addrsig\b|\.addrsig_sym\b|\.attribute\b" +
             @"|\.intel_syntax\b|\.att_syntax\b" +
-            @"|\.Lfunc_begin|\.Lfunc_end|\.Ltmp" +
-            @"|\.def\b|\.scl\b|\.endef\b" +
-            @"|\.set\b|\.quad\b|\.long\b|\.byte\b|\.string\b|\.asciz\b" +
+            @"|\.Lfunc_begin|\.Lfunc_end|\.Ltmp|\.LBB|\.Lcfi" +
+            @"|\.def\b|\.scl\b|\.endef\b|\.cv_" +
+            @"|\.set\b|\.quad\b|\.long\b|\.short\b|\.byte\b" +
+            @"|\.string\b|\.asciz\b|\.ascii\b|\.space\b|\.zero\b" +
+            @"|\.loc\b" +
             @")",
             RegexOptions.Compiled);
 
-        // Lines that are pure noise: /APP, /NO_APP, #APP, #NO_APP, GCC line markers
-        // (# N "file"), BB labels (# %bb.0:), standalone source-loc (# path:N:)
+        // Windows clang constant-pool labels:
+        //   __ymm@fffff...  __real@3ff00000...  __xmm@...
+        // These are SIMD/FP literal pools emitted into .rdata — pure data, not instructions.
+        private static readonly Regex ConstPoolLabel = new(
+            @"^(__ymm@|__xmm@|__real@|__float@|__int@)[\w@]+\s*:",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        // Pure-noise comment lines dropped entirely
         private static readonly Regex DisplayDropComment = new(
-            @"^\s*(/APP|/NO_APP|#NO_APP|#APP" +
+            @"^\s*(" +
+            @"/APP|/NO_APP|#NO_APP|#APP" +
             @"|# %bb\.\d+:" +
-            @"|#\s+\d+\s+""[^""]*""" +      // GCC line marker: # 2 "file.cpp" 1
-            @"|#\s+\S+:\d+)" +             // standalone source-loc: # /path:5:
+            @"|#\s+\d+\s+""[^""]*""" +
+            @"|#\s+\S+:\d+" +
+            @"|# kill:" +
+            @"|# implicit-def:" +
+            @"|# dbg_value" +
+            @"|# -- End function" +
+            @")",
             RegexOptions.Compiled);
 
-        // Source-location trailing comments on instruction lines.
-        // GCC emits:   lea rax, [rcx+rdx]  # _3, # C:\path:8: }
-        // clang emits: ret  # -- End function
-        // We strip everything from the first # that is either a source-loc tag,
-        // a function-end marker, or a pure operand-noise comment (# alone, # x,)
-        private static readonly Regex DisplayTrailingNoise = new(
-            @"\s+#\s*(?:#.*|--\s.*|\S+:\d+.*|,?\s*)$",
+        // Strip ALL trailing # comments from instruction lines
+        private static readonly Regex DisplayTrailingComment = new(
+            @"\s+#.*$",
             RegexOptions.Compiled);
 
         // Windows clang emits quoted mangled labels:  "?add@@YA_K_K0@Z":
@@ -587,27 +643,48 @@ namespace Caldera
             @"^""([^""]+)""\s*:",
             RegexOptions.Compiled);
 
+        // Local labels (.LBB0_1:  .loop:  .Ltmp3: etc.) — dropped from display
+        // Matches both indented and non-indented forms
+        private static readonly Regex LocalLabel = new(
+            @"^\s*\.[\w.]+\s*:(\s*$|\s+#)",
+            RegexOptions.Compiled);
+
         private static string FormatGccAsm(string asm)
         {
             var sb = new StringBuilder();
             bool firstLabel = true;
+            bool inCalderaBody = false; // true while inside a caldera wrapper function body
 
             foreach (var rawLine in asm.Split('\n'))
             {
                 var line = rawLine.TrimEnd();
 
-                // Drop GAS directives
                 if (DisplayDropLine.IsMatch(line)) continue;
-                // Drop APP markers, BB labels, GCC line markers, standalone source-loc comments
                 if (DisplayDropComment.IsMatch(line)) continue;
 
                 var trimmed = line.TrimStart();
+                if (string.IsNullOrWhiteSpace(trimmed)) continue;
+
+                // Drop @feat.00 and similar MSVC/COFF metadata symbols
+                if (trimmed.StartsWith("@feat.") || trimmed.StartsWith("@comp.id"))
+                    continue;
+
+                // Drop local labels (.LBB0_1:  .loop:  etc.)
+                if (LocalLabel.IsMatch(trimmed)) continue;
+
+                // Drop constant pool labels (__ymm@fff...:  __real@3ff...:)
+                if (ConstPoolLabel.IsMatch(trimmed)) continue;
 
                 // Quoted label (Windows clang):  "?add@@YA_K_K0@Z":
                 var quotedMatch = QuotedLabel.Match(trimmed);
                 if (quotedMatch.Success)
                 {
                     var rawLabel = quotedMatch.Groups[1].Value;
+                    if (ConstPoolLabel.IsMatch(rawLabel + ":")) continue;
+                    // Drop caldera wrapper quoted labels and their bodies
+                    if (rawLabel.Contains("caldera", StringComparison.OrdinalIgnoreCase))
+                    { inCalderaBody = true; continue; }
+                    inCalderaBody = false;
                     var label = TryDemangleMsvcName(rawLabel) ?? TryDemangleItanium(rawLabel) ?? rawLabel;
                     if (!firstLabel) sb.AppendLine();
                     sb.AppendLine(label + ":");
@@ -615,20 +692,24 @@ namespace Caldera
                     continue;
                 }
 
-                // Strip trailing noise from instruction lines (source tags, operand comments)
-                line = DisplayTrailingNoise.Replace(line, "").TrimEnd();
+                // Strip all trailing # comments from instructions
+                line = DisplayTrailingComment.Replace(line, "").TrimEnd();
                 trimmed = line.TrimStart();
-
                 if (string.IsNullOrWhiteSpace(trimmed)) continue;
 
-                // Unquoted function label: starts at column 0, ends with ':'
+                // Function label: non-indented, ends with ':', not a directive or data label
                 bool isFuncLabel = !line.StartsWith(' ') && !line.StartsWith('\t')
                                    && trimmed.EndsWith(':')
                                    && !trimmed.StartsWith('.')
-                                   && !trimmed.StartsWith('#');
+                                   && !trimmed.StartsWith('#')
+                                   && !ConstPoolLabel.IsMatch(trimmed);
                 if (isFuncLabel)
                 {
                     var rawLabel = trimmed.TrimEnd(':');
+                    // Drop caldera wrapper labels and mark their body for skipping
+                    if (rawLabel.Contains("caldera", StringComparison.OrdinalIgnoreCase))
+                    { inCalderaBody = true; continue; }
+                    inCalderaBody = false;
                     var label = TryDemangleItanium(rawLabel)
                              ?? (rawLabel.StartsWith('?') ? TryDemangleMsvcName(rawLabel) : null)
                              ?? rawLabel;
@@ -638,6 +719,8 @@ namespace Caldera
                 }
                 else
                 {
+                    // Skip instructions that belong to a caldera wrapper body
+                    if (inCalderaBody) continue;
                     sb.AppendLine("        " + trimmed);
                 }
             }
@@ -647,30 +730,41 @@ namespace Caldera
 
         // ── MSVC display formatter ────────────────────────────────────────────
 
-        // Pure noise lines in MSVC /FA output
         private static readonly Regex MsvcDropDisplay = new(
             @"^\s*(" +
-            @";\s*(File\s|Line\s|\d+\s*:|Function compile|COMDAT)" +  // all ; comment lines
-            @"|[A-Za-z_?][A-Za-z0-9_?@$]*\s+ENDP\b" +                // ENDP lines
-            @"|_TEXT\s+(SEGMENT|ENDS)" +                               // segment declarations
-            @"|PUBLIC\b|EXTRN\b|INCLUDELIB\b|include\b" +             // linker directives
-            @"|END\s*$" +                                              // END statement
-            @"|# License|# The use of|# See https" +                  // MSVC license header
-            @"|; Listing generated" +                                  // listing header
+            @";\s*(File\s|Line\s|\d+\s*:|Function compile|COMDAT|Listing generated)" +
+            @"|[A-Za-z_?][A-Za-z0-9_?@$]*\s+ENDP\b" +
+            @"|_TEXT\s+(SEGMENT|ENDS)" +
+            @"|CONST\s+(SEGMENT|ENDS)" +
+            @"|PUBLIC\b|EXTRN\b|INCLUDELIB\b|include\b" +
+            @"|END\s*$" +
+            @"|# License|# The use of|# See https" +
+            @"|npad\b" +
+            @"|\$Size\$|\$Where\$" +
             @")",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        // Variable offset annotations: p$ = 8  or  _q$ = 16  or  _a$ = -16
+        // Variable offset annotations: p$ = 8  or  _q$ = 16
         private static readonly Regex MsvcOffsetAnnotation = new(
             @"^\s*[A-Za-z_$][A-Za-z0-9_$]*\s*=\s*-?\d+\s*$",
             RegexOptions.Compiled);
 
-        // Trailing ; comment (strip from instructions)
         private static readonly Regex MsvcTrailingComment = new(
             @"\s*;.*$",
             RegexOptions.Compiled);
 
-        // PROC label:  main PROC  or  ?add@@YA_K_K0@Z PROC  (with optional trailing ; COMDAT)
+        private static readonly Regex MsvcOffsetFlat = new(
+            @"OFFSET\s+FLAT:\s*",
+            RegexOptions.Compiled);
+
+        private static readonly Regex MsvcShortKeyword = new(
+            @"\bSHORT\s+",
+            RegexOptions.Compiled);
+
+        private static readonly Regex MsvcHexLiteral = new(
+            @"\b([0-9A-Fa-f]+)H\b",
+            RegexOptions.Compiled);
+
         private static readonly Regex MsvcProcLabel = new(
             @"^([A-Za-z_?][A-Za-z0-9_?@$]*)\s+PROC\b",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -682,18 +776,23 @@ namespace Caldera
         {
             var sb = new StringBuilder();
             bool firstLabel = true;
+            bool inCalderaBody = false;
 
             foreach (var rawLine in asm.Split('\n'))
             {
                 var line = rawLine.TrimEnd();
                 var trimmed = line.TrimStart();
 
-                // Check for PROC label FIRST (before the drop regex, which doesn't handle PROC)
+                if (string.IsNullOrWhiteSpace(trimmed)) continue;
+
+                // PROC label → function header
                 var procMatch = MsvcProcLabel.Match(trimmed);
                 if (procMatch.Success)
                 {
                     var rawLabel = procMatch.Groups[1].Value;
-                    if (MsvcSentinelNames.Contains(rawLabel)) continue;
+                    if (MsvcSentinelNames.Contains(rawLabel))
+                    { inCalderaBody = true; continue; }
+                    inCalderaBody = false;
                     var label = TryDemangleMsvcName(rawLabel) ?? rawLabel;
                     if (!firstLabel) sb.AppendLine();
                     sb.AppendLine(label + ":");
@@ -701,14 +800,29 @@ namespace Caldera
                     continue;
                 }
 
+                // ENDP → end of a function body (clears caldera body flag too)
+                if (trimmed.IndexOf("ENDP", StringComparison.OrdinalIgnoreCase) >= 0)
+                { inCalderaBody = false; continue; }
+
                 if (MsvcDropDisplay.IsMatch(line)) continue;
                 if (MsvcOffsetAnnotation.IsMatch(line)) continue;
 
-                if (string.IsNullOrWhiteSpace(trimmed)) continue;
+                // Skip instructions inside caldera sentinel bodies
+                if (inCalderaBody) continue;
 
-                // Strip trailing ; comment, then emit
+                // Strip trailing ; comment
                 var cleaned = MsvcTrailingComment.Replace(line, "").TrimEnd();
                 if (string.IsNullOrWhiteSpace(cleaned)) continue;
+
+                // Clean up MSVC-isms in instruction operands
+                cleaned = MsvcOffsetFlat.Replace(cleaned, "");
+                cleaned = MsvcShortKeyword.Replace(cleaned, "");
+                cleaned = MsvcHexLiteral.Replace(cleaned,
+                    m => Convert.ToInt64(m.Groups[1].Value, 16).ToString());
+
+                cleaned = cleaned.TrimEnd();
+                if (string.IsNullOrWhiteSpace(cleaned)) continue;
+
                 sb.AppendLine("        " + cleaned.TrimStart());
             }
 
@@ -752,12 +866,24 @@ namespace Caldera
             try
             {
                 var s = name[1..];
-                int at = s.IndexOf('@');
-                if (at <= 0) return null;
-                var funcName = s[..at];
-                s = s[(at + 1)..];
 
-                // Check for class scope: ?foo@Bar@@...
+                // Template instantiation: ??$dot@M@@... → function name is "dot"
+                // ??$ means: ? (start) ?$ (template marker) name @ args @@
+                if (s.StartsWith("?$"))
+                {
+                    s = s[2..];
+                    int at = s.IndexOf('@');
+                    if (at <= 0) return null;
+                    // Just return the bare template name — type args are too complex to decode
+                    return s[..at] + "(...)";
+                }
+
+                int atIdx = s.IndexOf('@');
+                if (atIdx <= 0) return null;
+                var funcName = s[..atIdx];
+                s = s[(atIdx + 1)..];
+
+                // Class scope: ?foo@Bar@@...
                 string? className = null;
                 if (s.Length > 0 && s[0] != '@' && s[0] != 'Y' && !char.IsDigit(s[0]))
                 {
@@ -765,7 +891,7 @@ namespace Caldera
                     if (at2 > 0) { className = s[..at2]; s = s[(at2 + 1)..]; }
                 }
 
-                // Locate 'Y' (marks start of function type encoding)
+                // Locate 'Y' (function type encoding start)
                 int yi = s.IndexOf('Y');
                 if (yi < 0) return null;
                 s = s[(yi + 1)..];
@@ -829,9 +955,6 @@ namespace Caldera
         }
 
         // ── Itanium ABI demangler (clang/g++ Linux or MinGW) ─────────────────
-        // _Z3addyy  →  add(unsigned long long, unsigned long long)
-        // _ZN3Foo3barEv  →  Foo::bar()
-        // Substitution back-refs S_, S0_ etc. are handled.
         private static readonly Dictionary<char, string> _itaniumTypeMap = new()
         {
             ['v'] = "void",
@@ -850,6 +973,7 @@ namespace Caldera
             ['f'] = "float",
             ['d'] = "double",
             ['e'] = "long double",
+            ['z'] = "...",
         };
 
         private static string? TryDemangleItanium(string mangled)
@@ -861,77 +985,145 @@ namespace Caldera
                 string funcName;
                 string remaining;
 
-                if (s.StartsWith("N")) // nested: _ZN3Foo3barEv
+                if (s.StartsWith("N")) // nested name: _ZN3Foo3barEv
                 {
                     s = s[1..];
                     var parts = new List<string>();
                     while (s.Length > 0 && s[0] != 'E')
                     {
+                        // Template instantiation: I...E
+                        if (s[0] == 'I') { s = SkipToE(s[1..]); continue; }
                         if (!char.IsDigit(s[0])) break;
                         var len = ParseLength(s, out var after);
                         if (len <= 0 || len > after.Length) break;
-                        parts.Add(after[..len]); s = after[len..];
+                        parts.Add(after[..len]);
+                        s = after[len..];
                     }
                     funcName = string.Join("::", parts);
                     remaining = s.StartsWith("E") ? s[1..] : s;
                 }
-                else if (char.IsDigit(s[0])) // simple: _Z3add
+                else if (char.IsDigit(s[0])) // simple name: _Z3add
                 {
                     var len = ParseLength(s, out var after);
                     if (len <= 0 || len > after.Length) return null;
-                    funcName = after[..len]; remaining = after[len..];
+                    funcName = after[..len];
+                    remaining = after[len..];
+                    // Skip template args if present
+                    if (remaining.StartsWith("I"))
+                        remaining = SkipToE(remaining[1..]);
                 }
                 else return null;
 
-                if (remaining == "v") return funcName + "()";
+                if (remaining.Length == 0 || remaining == "v")
+                    return funcName + "()";
 
+                // Parse parameter types
                 var paramTypes = new List<string>();
+                var sub = new List<string>(); // substitution table
                 int i = 0;
-                while (i < remaining.Length)
+                while (i < remaining.Length && remaining[i] != 'E')
                 {
-                    char c = remaining[i];
-                    // Substitution back-reference S_ = first, S0_ = second, ...
-                    if (c == 'S')
-                    {
-                        i++;
-                        if (i < remaining.Length && remaining[i] == '_')
-                        { if (paramTypes.Count > 0) paramTypes.Add(paramTypes[0]); i++; }
-                        else if (i < remaining.Length && char.IsDigit(remaining[i]))
-                        {
-                            int idx = (remaining[i] - '0') + 1;
-                            if (idx < paramTypes.Count) paramTypes.Add(paramTypes[idx]);
-                            i++;
-                            if (i < remaining.Length && remaining[i] == '_') i++;
-                        }
-                        continue;
-                    }
-                    if (_itaniumTypeMap.TryGetValue(c, out var t))
-                    { paramTypes.Add(t); i++; }
-                    else if (c == 'P')
-                    {
-                        i++;
-                        var t2 = i < remaining.Length && _itaniumTypeMap.TryGetValue(remaining[i], out var pt) ? pt : "?";
-                        paramTypes.Add(t2 + "*"); if (i < remaining.Length) i++;
-                    }
-                    else if (c == 'R')
-                    {
-                        i++;
-                        var t2 = i < remaining.Length && _itaniumTypeMap.TryGetValue(remaining[i], out var rt) ? rt : "?";
-                        paramTypes.Add(t2 + "&"); if (i < remaining.Length) i++;
-                    }
-                    else if (char.IsDigit(c))
-                    {
-                        var len2 = ParseLength(remaining[i..], out var after2);
-                        if (len2 > 0 && len2 <= after2.Length)
-                        { paramTypes.Add(after2[..len2]); i += (remaining[i..].Length - after2.Length) + len2; }
-                        else break;
-                    }
-                    else break;
+                    var (typeName, advance) = ParseItaniumType(remaining[i..], sub);
+                    if (typeName == null || advance == 0) break;
+                    if (typeName != "void") paramTypes.Add(typeName);
+                    i += advance;
                 }
 
                 return funcName + "(" + string.Join(", ", paramTypes) + ")";
             }
             catch { return null; }
+        }
+
+        private static (string? type, int advance) ParseItaniumType(string s, List<string> sub)
+        {
+            if (s.Length == 0) return (null, 0);
+            char c = s[0];
+
+            // Qualifiers — consume and recurse
+            if (c == 'K' || c == 'r' || c == 'V') // const, restrict, volatile
+            {
+                var (inner, adv) = ParseItaniumType(s[1..], sub);
+                string qual = c == 'K' ? "const " : c == 'r' ? "__restrict__ " : "volatile ";
+                return (inner != null ? qual + inner : null, adv + 1);
+            }
+
+            // Pointer / reference
+            if (c == 'P')
+            {
+                var (inner, adv) = ParseItaniumType(s[1..], sub);
+                return (inner != null ? inner + "*" : null, adv + 1);
+            }
+            if (c == 'R')
+            {
+                var (inner, adv) = ParseItaniumType(s[1..], sub);
+                return (inner != null ? inner + "&" : null, adv + 1);
+            }
+            if (c == 'O')
+            {
+                var (inner, adv) = ParseItaniumType(s[1..], sub);
+                return (inner != null ? inner + "&&" : null, adv + 1);
+            }
+
+            // Substitution S_ S0_ S1_ ...
+            if (c == 'S')
+            {
+                if (s.Length > 1 && s[1] == '_')
+                {
+                    var t = sub.Count > 0 ? sub[0] : "?";
+                    return (t, 2);
+                }
+                if (s.Length > 2 && char.IsDigit(s[1]) && s[2] == '_')
+                {
+                    int idx = (s[1] - '0') + 1;
+                    var t = idx < sub.Count ? sub[idx] : "?";
+                    return (t, 3);
+                }
+                // St = std::
+                if (s.Length > 1 && s[1] == 't') return ("std", 2);
+                return ("?", 1);
+            }
+
+            // Template args — skip entirely
+            if (c == 'I')
+            {
+                var rest = SkipToE(s[1..]);
+                return ("...", s.Length - rest.Length + 1);
+            }
+
+            // Builtin type
+            if (_itaniumTypeMap.TryGetValue(c, out var bt))
+            {
+                if (bt != "void") sub.Add(bt);
+                return (bt, 1);
+            }
+
+            // User-defined type (length-prefixed name)
+            if (char.IsDigit(c))
+            {
+                var len = ParseLength(s, out var after);
+                if (len > 0 && len <= after.Length)
+                {
+                    var name = after[..len];
+                    sub.Add(name);
+                    return (name, s.Length - after.Length + len);
+                }
+            }
+
+            return (null, 1); // unknown — skip one char
+        }
+
+        // Skip past a template argument list, consuming until the matching 'E'
+        private static string SkipToE(string s)
+        {
+            int depth = 0;
+            int i = 0;
+            while (i < s.Length)
+            {
+                if (s[i] == 'I') depth++;
+                else if (s[i] == 'E') { if (depth == 0) return s[(i + 1)..]; depth--; }
+                i++;
+            }
+            return string.Empty;
         }
 
         private static int ParseLength(string s, out string remainder)
@@ -949,25 +1141,27 @@ namespace Caldera
         private static readonly Regex GasDropLine = new(
             @"^\s*(" +
             @"\.file\b|\.text\b|\.data\b|\.bss\b|\.section\b" +
-            @"|\.globl\b|\.global\b|\.weak\b" +
+            @"|\.globl\b|\.global\b|\.weak\b|\.local\b|\.hidden\b|\.protected\b" +
+            @"|\.comm\b|\.lcomm\b" +
             @"|\.type\b|\.size\b" +
-            @"|\.p2align\b|\.align\b|\.balign\b" +
+            @"|\.p2align\b|\.align\b|\.balign\b|\.nops\b" +
             @"|\.cfi_" +
-            @"|\.ident\b|\.addrsig\b|\.addrsig_sym\b" +
+            @"|\.ident\b|\.addrsig\b|\.addrsig_sym\b|\.attribute\b" +
             @"|\.intel_syntax\b|\.att_syntax\b" +
-            @"|\.Lfunc_begin|\.Lfunc_end|\.Ltmp" +
-            @"|\.def\b|\.scl\b|\.endef\b" +
-            // GCC verbose-asm block markers
+            @"|\.Lfunc_begin|\.Lfunc_end|\.Ltmp|\.LBB|\.Lcfi" +
+            @"|\.def\b|\.scl\b|\.endef\b|\.cv_" +
+            @"|\.set\b|\.quad\b|\.long\b|\.short\b|\.byte\b" +
+            @"|\.string\b|\.asciz\b|\.ascii\b|\.space\b|\.zero\b" +
+            @"|\.loc\b" +
             @"|/APP|/NO_APP|#APP|#NO_APP" +
-            // GCC line markers:  # 3 "file.cpp" 1
             @"|#\s+\d+\s+""[^""]*""" +
-            @"|#\s+\S+:\d+" +   // standalone verbose-asm source-location comment lines
+            @"|#\s+\S+:\d+" +
             @")",
             RegexOptions.Compiled);
 
-        // Trailing verbose-asm comment on an instruction:  lea rax, [rcx+rdx]  # /path:3:14
+        // Strip all trailing # comments from instructions
         private static readonly Regex GasTrailingComment = new(
-            @"\s+#\s+\S*:\d+.*$",
+            @"\s+#.*$",
             RegexOptions.Compiled);
 
         public static string StripGasDirectives(string asm)
@@ -978,7 +1172,7 @@ namespace Caldera
             {
                 var line = rawLine.TrimEnd();
                 if (GasDropLine.IsMatch(line)) continue;
-                line = GasTrailingComment.Replace(line, "");
+                line = GasTrailingComment.Replace(line, "").TrimEnd();
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 sb.AppendLine(line);
             }

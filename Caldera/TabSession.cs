@@ -23,6 +23,7 @@ namespace Caldera
 
         // ── Last compile result ───────────────────────────────────────────────
         public string AsmText { get; set; } = string.Empty;
+        public string RawAsmText { get; set; } = string.Empty;
         public string CompilerText { get; set; } = string.Empty;
         public string McaText { get; set; } = string.Empty;
 

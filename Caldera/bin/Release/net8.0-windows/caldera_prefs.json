@@ -1,0 +1,14 @@
+{
+  "Theme": "Spectra",
+  "FontFamily": "Consolas",
+  "FontSize": 20,
+  "OutputFontSize": 20,
+  "ClangPath": "",
+  "GppPath": "",
+  "ClPath": "",
+  "McaPath": "",
+  "Compiler": "clang\u002B\u002B",
+  "Std": "c\u002B\u002B17",
+  "CompilerFlags": "-O3",
+  "McaFlags": "--mcpu=native"
+}

@@ -1,14 +1,10 @@
 ﻿using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
-using ICSharpCode.AvalonEdit.Rendering;
 using Microsoft.Win32;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -23,24 +19,32 @@ namespace Caldera
     public partial class MainWindow : Window
     {
         // ── DWM P/Invokes ─────────────────────────────────────────────────────
-        [DllImport("dwmapi.dll")] static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
-        [DllImport("dwmapi.dll")] static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref MARGINS margins);
-        [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
-        [DllImport("user32.dll")] static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
-        [DllImport("user32.dll")] static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+        [DllImport("dwmapi.dll")] private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
-        [StructLayout(LayoutKind.Sequential)] struct MARGINS { public int Left, Right, Top, Bottom; }
-        [StructLayout(LayoutKind.Sequential)] struct RECT { public int Left, Top, Right, Bottom; }
+        [DllImport("dwmapi.dll")] private static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref MARGINS margins);
+
+        [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+
+        [DllImport("user32.dll")] private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        [DllImport("user32.dll")] private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+        [StructLayout(LayoutKind.Sequential)] private struct MARGINS { public int Left, Right, Top, Bottom; }
+
+        [StructLayout(LayoutKind.Sequential)] private struct RECT { public int Left, Top, Right, Bottom; }
+
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        struct MONITORINFO { public int cbSize; public RECT rcMonitor; public RECT rcWork; public uint dwFlags; }
+        private struct MONITORINFO
+        { public int cbSize; public RECT rcMonitor; public RECT rcWork; public uint dwFlags; }
 
-        const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-        const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
-        const int DWMWCP_ROUND = 2;
-        const uint MONITOR_DEFAULTTONEAREST = 2;
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+        private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+        private const int DWMWCP_ROUND = 2;
+        private const uint MONITOR_DEFAULTTONEAREST = 2;
 
         // ── Tab state ─────────────────────────────────────────────────────────
         private readonly ObservableCollection<TabSession> _tabs = new();
+
         private TabSession? _activeSession;
 
         // ── ASM highlight ─────────────────────────────────────────────────────
@@ -51,6 +55,7 @@ namespace Caldera
 
         // ── Run state ─────────────────────────────────────────────────────────
         private bool _isRunning = false;
+
         private bool _mcaRunning = false;
 
         // ── Ctor ──────────────────────────────────────────────────────────────
@@ -223,8 +228,11 @@ namespace Caldera
         // ── File operations ───────────────────────────────────────────────────
 
         private void NewFile_Click(object sender, RoutedEventArgs e) => NewTab();
+
         private void OpenFile_Click(object sender, RoutedEventArgs e) => Open();
+
         private void SaveFile_Click(object sender, RoutedEventArgs e) => Save();
+
         private void SaveAsFile_Click(object sender, RoutedEventArgs e) => SaveAs();
 
         private void Open()
@@ -472,8 +480,14 @@ namespace Caldera
                 ? groups : new List<FlagGroup>();
         }
 
-        private void CompilerSelector_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        private void CompilerSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
             RefreshFlagPicker();
+            var isMsvc = (CompilerSelector.SelectedItem as ComboBoxItem)?.Content as string == "cl.exe";
+            if (McaButton == null) return;
+            McaButton.IsEnabled = !isMsvc;
+            McaButton.ToolTip = isMsvc ? "llvm-mca is not supported for cl.exe" : null;
+        }
 
         private void FlagPickerButton_Click(object sender, RoutedEventArgs e) =>
             FlagPickerPopup.IsOpen = !FlagPickerPopup.IsOpen;
@@ -624,6 +638,7 @@ namespace Caldera
 
                 // Store in session
                 _activeSession.AsmText = result.AsmOutput;
+                _activeSession.RawAsmText = result.RawAsmOutput;
                 _activeSession.CompilerText = result.CompilerOutput;
                 _activeSession.McaText = string.Empty;
                 _activeSession.AsmMap = result.AsmMap;
@@ -660,7 +675,7 @@ namespace Caldera
             try
             {
                 var result = await CompilerService.RunMcaAsync(
-                    _activeSession.AsmText,
+                    _activeSession.RawAsmText,
                     McaFlagsInput.Text.Trim(),
                     _activeSession.CompilerKind
                 );
@@ -716,6 +731,7 @@ namespace Caldera
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
         private void MaximizeButton_Click(object sender, RoutedEventArgs e) =>
             WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
@@ -791,9 +807,13 @@ namespace Caldera
     public class RelayCommand : ICommand
     {
         private readonly Action<object?> _execute;
+
         public RelayCommand(Action<object?> execute) => _execute = execute;
+
         public event EventHandler? CanExecuteChanged;
+
         public bool CanExecute(object? parameter) => true;
+
         public void Execute(object? parameter) => _execute(parameter);
     }
 }
