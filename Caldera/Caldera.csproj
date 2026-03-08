@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +18,7 @@
     <None Remove="Cpp-Iota.xshd" />
     <None Remove="Cpp-Spectra.xshd" />
     <None Remove="Cpp-StormSTL.xshd" />
+    <None Remove="favicon.ico" />
     <None Remove="Fonts\ORBITRON-BLACK.TTF" />
     <None Remove="Fonts\ORBITRON-MEDIUM.TTF" />
     <None Remove="Fonts\ORBITRON-SEMIBOLD.TTF" />
@@ -37,6 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="favicon.ico" />
     <Content Include="Highlighting\Asm-Corium.xshd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -61,6 +64,9 @@
     <Content Include="Highlighting\Cpp-StormSTL.xshd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="favicon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Fonts\ORBITRON-BLACK.TTF">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
