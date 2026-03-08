@@ -3,7 +3,6 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
@@ -140,13 +139,13 @@ namespace Caldera
                 RestoreToolbarState(_prefs);
 
                 // Restore panel split ratio
-                if (prefs.EditorSplitRatio > 0.1 && prefs.EditorSplitRatio < 0.9)
+                if (_prefs.EditorSplitRatio > 0.1 && _prefs.EditorSplitRatio < 0.9)
                 {
                     var totalWidth = EditorAreaGrid.ActualWidth;
                     if (totalWidth > 0)
                     {
-                        EditorAreaGrid.ColumnDefinitions[0].Width = new GridLength(prefs.EditorSplitRatio, GridUnitType.Star);
-                        EditorAreaGrid.ColumnDefinitions[2].Width = new GridLength(1.0 - prefs.EditorSplitRatio, GridUnitType.Star);
+                        EditorAreaGrid.ColumnDefinitions[0].Width = new GridLength(_prefs.EditorSplitRatio, GridUnitType.Star);
+                        EditorAreaGrid.ColumnDefinitions[2].Width = new GridLength(1.0 - _prefs.EditorSplitRatio, GridUnitType.Star);
                     }
                 }
 
@@ -629,7 +628,7 @@ namespace Caldera
             { FileName = "https://github.com/placeholder", UseShellExecute = true });
 
         private void PreferencesMenuButton_Click(object sender, RoutedEventArgs e) =>
-            new PreferencesWindow { Owner = this }.ShowDialog();
+            new PreferencesWindow(_prefs) { Owner = this }.ShowDialog();
 
         // ── Opcode reference panel ───────────────────────────────────────────
 

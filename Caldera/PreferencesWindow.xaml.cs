@@ -14,6 +14,7 @@ namespace Caldera
         private string _pendingFontFamily;
         private double _pendingFontSize;
         private double _pendingOutputFontSize;
+        private PreferencesData _prefs = null!;
 
         // ── Theme colour tables (public so PreferencesStore can access) ───────
         public static readonly Dictionary<string, Dictionary<string, Color>> Themes = new()
@@ -76,10 +77,11 @@ namespace Caldera
             },
         };
 
-        public PreferencesWindow()
+        public PreferencesWindow(PreferencesData prefs)
         {
             InitializeComponent();
 
+            _prefs = prefs;
             _pendingTheme = ThemeManager.CurrentTheme;
             _pendingFontFamily = ThemeManager.CurrentFontFamily;
             _pendingFontSize = ThemeManager.CurrentFontSize;
@@ -181,18 +183,16 @@ namespace Caldera
             CompilerPaths.Cl = ClPath.Text.Trim();
             CompilerPaths.Mca = McaPath.Text.Trim();
 
-            // Persist to JSON
-            PreferencesStore.Save(new PreferencesData
-            {
-                Theme = _pendingTheme,
-                FontFamily = _pendingFontFamily,
-                FontSize = _pendingFontSize,
-                OutputFontSize = _pendingOutputFontSize,
-                ClangPath = CompilerPaths.Clang,
-                GppPath = CompilerPaths.Gpp,
-                ClPath = CompilerPaths.Cl,
-                McaPath = CompilerPaths.Mca,
-            });
+            // Persist to JSON — mutate shared _prefs so no fields are clobbered
+            _prefs.Theme = _pendingTheme;
+            _prefs.FontFamily = _pendingFontFamily;
+            _prefs.FontSize = _pendingFontSize;
+            _prefs.OutputFontSize = _pendingOutputFontSize;
+            _prefs.ClangPath = CompilerPaths.Clang;
+            _prefs.GppPath = CompilerPaths.Gpp;
+            _prefs.ClPath = CompilerPaths.Cl;
+            _prefs.McaPath = CompilerPaths.Mca;
+            PreferencesStore.Save(_prefs);
 
             Close();
         }
