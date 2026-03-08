@@ -3,6 +3,7 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
@@ -52,6 +53,9 @@ namespace Caldera
 
         // ── Opcode reference panel ────────────────────────────────────────────
         private bool _opcodePanelOpen = false;
+
+        // ── Persistent preferences (single in-memory instance) ────────────────
+        private PreferencesData _prefs = new();
 
         // ── Run state ─────────────────────────────────────────────────────────
         private bool _isRunning = false;
@@ -114,15 +118,15 @@ namespace Caldera
             StateChanged += OnStateChanged;
 
             // Restore window geometry
-            var prefs = PreferencesStore.Load();
-            if (!double.IsNaN(prefs.WindowLeft) && !double.IsNaN(prefs.WindowTop))
+            _prefs = PreferencesStore.Load();
+            if (!double.IsNaN(_prefs.WindowLeft) && !double.IsNaN(_prefs.WindowTop))
             {
-                Left = prefs.WindowLeft;
-                Top = prefs.WindowTop;
+                Left = _prefs.WindowLeft;
+                Top = _prefs.WindowTop;
             }
-            Width = prefs.WindowWidth > 400 ? prefs.WindowWidth : 1400;
-            Height = prefs.WindowHeight > 300 ? prefs.WindowHeight : 800;
-            if (prefs.WindowMaximized)
+            Width = _prefs.WindowWidth > 400 ? _prefs.WindowWidth : 1400;
+            Height = _prefs.WindowHeight > 300 ? _prefs.WindowHeight : 800;
+            if (_prefs.WindowMaximized)
                 WindowState = WindowState.Maximized;
 
             Closing += (s, _) => SaveWindowGeometry();
@@ -133,7 +137,7 @@ namespace Caldera
                 RefreshFlagPicker();
 
                 // Restore toolbar state from prefs
-                RestoreToolbarState(prefs);
+                RestoreToolbarState(_prefs);
 
                 // Restore panel split ratio
                 if (prefs.EditorSplitRatio > 0.1 && prefs.EditorSplitRatio < 0.9)
@@ -153,24 +157,23 @@ namespace Caldera
 
         private void SaveWindowGeometry()
         {
-            var prefs = PreferencesStore.Load();
-            prefs.WindowMaximized = WindowState == WindowState.Maximized;
+            _prefs.WindowMaximized = WindowState == WindowState.Maximized;
             if (WindowState == WindowState.Normal)
             {
-                prefs.WindowLeft = Left;
-                prefs.WindowTop = Top;
-                prefs.WindowWidth = Width;
-                prefs.WindowHeight = Height;
+                _prefs.WindowLeft = Left;
+                _prefs.WindowTop = Top;
+                _prefs.WindowWidth = Width;
+                _prefs.WindowHeight = Height;
             }
             // Save editor split ratio
             var total = EditorAreaGrid.ColumnDefinitions[0].ActualWidth +
                         EditorAreaGrid.ColumnDefinitions[2].ActualWidth;
             if (total > 0)
-                prefs.EditorSplitRatio = EditorAreaGrid.ColumnDefinitions[0].ActualWidth / total;
+                _prefs.EditorSplitRatio = EditorAreaGrid.ColumnDefinitions[0].ActualWidth / total;
             // Save output panel height
             if (_outputVisible)
-                prefs.OutputPanelHeight = OutputRow.Height.Value;
-            PreferencesStore.Save(prefs);
+                _prefs.OutputPanelHeight = OutputRow.Height.Value;
+            PreferencesStore.Save(_prefs);
         }
 
         // ── Tab management ────────────────────────────────────────────────────
@@ -609,12 +612,11 @@ namespace Caldera
 
         private void SaveToolbarState()
         {
-            var prefs = PreferencesStore.Load();
-            prefs.Compiler = (CompilerSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "clang++";
-            prefs.Std = (StdSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "c++20";
-            prefs.CompilerFlags = FlagsInput.Text.Trim();
-            prefs.McaFlags = McaFlagsInput.Text.Trim();
-            PreferencesStore.Save(prefs);
+            _prefs.Compiler = (CompilerSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "clang++";
+            _prefs.Std = (StdSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "c++20";
+            _prefs.CompilerFlags = FlagsInput.Text.Trim();
+            _prefs.McaFlags = McaFlagsInput.Text.Trim();
+            PreferencesStore.Save(_prefs);
         }
 
         // ── Menu ──────────────────────────────────────────────────────────────
@@ -1008,9 +1010,8 @@ namespace Caldera
             var name = Microsoft.VisualBasic.Interaction.InputBox(
                 "Preset name:", "Save Flag Preset", flags[..Math.Min(20, flags.Length)]);
             if (string.IsNullOrWhiteSpace(name)) return;
-            var prefs = PreferencesStore.Load();
-            prefs.CompilerFlagPresets[name] = flags;
-            PreferencesStore.Save(prefs);
+            _prefs.CompilerFlagPresets[name] = flags;
+            PreferencesStore.Save(_prefs);
             RefreshPresetPicker();
         }
 
@@ -1021,24 +1022,21 @@ namespace Caldera
             var name = Microsoft.VisualBasic.Interaction.InputBox(
                 "Preset name:", "Save MCA Preset", flags[..Math.Min(20, flags.Length)]);
             if (string.IsNullOrWhiteSpace(name)) return;
-            var prefs = PreferencesStore.Load();
-            prefs.McaFlagPresets[name] = flags;
-            PreferencesStore.Save(prefs);
+            _prefs.McaFlagPresets[name] = flags;
+            PreferencesStore.Save(_prefs);
             RefreshMcaPresetPicker();
         }
 
         private void RefreshPresetPicker()
         {
-            var prefs = PreferencesStore.Load();
-            PresetPickerList.ItemsSource = prefs.CompilerFlagPresets
+            PresetPickerList.ItemsSource = _prefs.CompilerFlagPresets
                 .Select(kv => new FlagItem { Flag = kv.Key, Description = kv.Value })
                 .ToList();
         }
 
         private void RefreshMcaPresetPicker()
         {
-            var prefs = PreferencesStore.Load();
-            McaPresetPickerList.ItemsSource = prefs.McaFlagPresets
+            McaPresetPickerList.ItemsSource = _prefs.McaFlagPresets
                 .Select(kv => new FlagItem { Flag = kv.Key, Description = kv.Value })
                 .ToList();
         }
