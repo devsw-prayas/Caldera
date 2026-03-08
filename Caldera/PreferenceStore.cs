@@ -26,6 +26,21 @@ namespace Caldera
         public string Std { get; set; } = "c++20";
         public string CompilerFlags { get; set; } = "-O2 -march=native";
         public string McaFlags { get; set; } = "--mcpu=native";
+
+        // Window geometry
+        public double WindowLeft { get; set; } = double.NaN;
+        public double WindowTop { get; set; } = double.NaN;
+        public double WindowWidth { get; set; } = 1400;
+        public double WindowHeight { get; set; } = 800;
+        public bool WindowMaximized { get; set; } = false;
+
+        // Panel proportions
+        public double EditorSplitRatio { get; set; } = 0.5;
+        public double OutputPanelHeight { get; set; } = 220;
+
+        // Flag presets: name → flags string
+        public Dictionary<string, string> CompilerFlagPresets { get; set; } = new();
+        public Dictionary<string, string> McaFlagPresets { get; set; } = new();
     }
 
     // ── Store ─────────────────────────────────────────────────────────────────

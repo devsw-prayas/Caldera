@@ -58,6 +58,9 @@ namespace Caldera
 
         private bool _mcaRunning = false;
 
+        // ── Multi-compiler compare state ──────────────────────────────────────
+        private bool _compareRunning = false;
+
         // ── Ctor ──────────────────────────────────────────────────────────────
         public MainWindow()
         {
@@ -110,18 +113,64 @@ namespace Caldera
             DwmExtendFrameIntoClientArea(hwnd, ref margins);
             StateChanged += OnStateChanged;
 
+            // Restore window geometry
+            var prefs = PreferencesStore.Load();
+            if (!double.IsNaN(prefs.WindowLeft) && !double.IsNaN(prefs.WindowTop))
+            {
+                Left = prefs.WindowLeft;
+                Top = prefs.WindowTop;
+            }
+            Width = prefs.WindowWidth > 400 ? prefs.WindowWidth : 1400;
+            Height = prefs.WindowHeight > 300 ? prefs.WindowHeight : 800;
+            if (prefs.WindowMaximized)
+                WindowState = WindowState.Maximized;
+
+            Closing += (s, _) => SaveWindowGeometry();
+
             Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Render, () =>
             {
                 InitAsmHighlighter();
                 RefreshFlagPicker();
 
                 // Restore toolbar state from prefs
-                var prefs = PreferencesStore.Load();
                 RestoreToolbarState(prefs);
+
+                // Restore panel split ratio
+                if (prefs.EditorSplitRatio > 0.1 && prefs.EditorSplitRatio < 0.9)
+                {
+                    var totalWidth = EditorAreaGrid.ActualWidth;
+                    if (totalWidth > 0)
+                    {
+                        EditorAreaGrid.ColumnDefinitions[0].Width = new GridLength(prefs.EditorSplitRatio, GridUnitType.Star);
+                        EditorAreaGrid.ColumnDefinitions[2].Width = new GridLength(1.0 - prefs.EditorSplitRatio, GridUnitType.Star);
+                    }
+                }
 
                 // Create initial tab
                 NewTab();
             });
+        }
+
+        private void SaveWindowGeometry()
+        {
+            var prefs = PreferencesStore.Load();
+            prefs.WindowMaximized = WindowState == WindowState.Maximized;
+            if (WindowState == WindowState.Normal)
+            {
+                prefs.WindowLeft = Left;
+                prefs.WindowTop = Top;
+                prefs.WindowWidth = Width;
+                prefs.WindowHeight = Height;
+            }
+            // Save editor split ratio
+            var total = EditorAreaGrid.ColumnDefinitions[0].ActualWidth +
+                        EditorAreaGrid.ColumnDefinitions[2].ActualWidth;
+            if (total > 0)
+                prefs.EditorSplitRatio = EditorAreaGrid.ColumnDefinitions[0].ActualWidth / total;
+            // Save output panel height
+            if (_outputVisible)
+                prefs.OutputPanelHeight = OutputRow.Height.Value;
+            PreferencesStore.Save(prefs);
         }
 
         // ── Tab management ────────────────────────────────────────────────────
@@ -150,6 +199,18 @@ namespace Caldera
             AsmOutput.Text = session.AsmText;
             CompilerOutput.Text = session.CompilerText;
             McaOutput.Text = session.McaText;
+
+            // Restore pin button state
+            if (PinButton != null)
+            {
+                if (session.PinnedAsmText != null)
+                { PinButton.Content = "⊟ unpin"; PinButton.ToolTip = $"Pinned: {session.PinnedLabel}"; }
+                else
+                { PinButton.Content = "⊞ pin"; PinButton.ToolTip = "Pin current ASM as baseline for diff"; }
+            }
+
+            // Restore stats
+            UpdateAsmStats(session.AsmText);
 
             // Restore ASM highlight
             _asmHighlighter?.Clear();
@@ -312,12 +373,17 @@ namespace Caldera
             if (_activeSession == null) return;
             _activeSession.Document.Text = string.Empty;
             _activeSession.AsmText = string.Empty;
+            _activeSession.RawAsmText = string.Empty;
             _activeSession.CompilerText = string.Empty;
             _activeSession.McaText = string.Empty;
+            _activeSession.PinnedAsmText = null;
+            _activeSession.PinnedLabel = null;
             _activeSession.AsmMap = new();
             AsmOutput.Text = string.Empty;
             CompilerOutput.Text = string.Empty;
             McaOutput.Text = string.Empty;
+            if (AsmStatsLabel != null) AsmStatsLabel.Text = string.Empty;
+            if (PinButton != null) { PinButton.Content = "⊞ pin"; PinButton.ToolTip = null; }
             _asmHighlighter?.Clear();
             HideOutputPanel();
         }
@@ -455,6 +521,8 @@ namespace Caldera
             AsmOutput.TextArea.TextView.BackgroundRenderers.Add(_asmHighlighter);
             SourceEditor.TextArea.Caret.PositionChanged += OnSourceCaretMoved;
             AsmOutput.TextArea.Caret.PositionChanged += OnAsmCaretMoved;
+            // Double-click ASM line → jump to source
+            AsmOutput.TextArea.MouseDoubleClick += AsmOutput_MouseDoubleClick;
             ThemeEditors();
         }
 
@@ -645,7 +713,15 @@ namespace Caldera
                 _activeSession.CompilerKind = result.CompilerKind;
 
                 CompilerOutput.Text = result.CompilerOutput;
-                AsmOutput.Text = result.AsmOutput;
+
+                // Show diff or plain ASM
+                if (_activeSession.PinnedAsmText != null)
+                    AsmOutput.Text = BuildDiff(_activeSession.PinnedAsmText, result.AsmOutput,
+                                               _activeSession.PinnedLabel, $"{compiler} {flags}");
+                else
+                    AsmOutput.Text = result.AsmOutput;
+
+                UpdateAsmStats(result.AsmOutput);
 
                 if (result.AsmMap.Count > 0)
                     OnSourceCaretMoved(null, EventArgs.Empty);
@@ -800,9 +876,356 @@ namespace Caldera
             };
             OutputRow.BeginAnimation(RowDefinition.HeightProperty, anim);
         }
-    }
+        // ── ASM stats (instruction count, line count) ─────────────────────────
 
-    // ── RelayCommand (for keyboard bindings) ──────────────────────────────────
+        private void UpdateAsmStats(string asmText)
+        {
+            if (AsmStatsLabel == null) return;
+            if (string.IsNullOrWhiteSpace(asmText))
+            {
+                AsmStatsLabel.Text = string.Empty;
+                return;
+            }
+            var lines = asmText.Split('\n');
+            int instrCount = 0;
+            int funcCount = 0;
+            foreach (var line in lines)
+            {
+                var t = line.TrimStart();
+                if (string.IsNullOrWhiteSpace(t) || t.StartsWith(';') || t.StartsWith('#') || t.StartsWith('.'))
+                    continue;
+                // Function label: non-indented, ends with ':'
+                if (!line.StartsWith(' ') && !line.StartsWith('\t') && t.EndsWith(':'))
+                    funcCount++;
+                else
+                    instrCount++;
+            }
+            AsmStatsLabel.Text = $"{instrCount} instr  ·  {funcCount} fn";
+        }
+
+        // ── Pin / diff ────────────────────────────────────────────────────────
+
+        private void PinButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activeSession == null || string.IsNullOrWhiteSpace(_activeSession.AsmText)) return;
+            var compiler = (CompilerSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "clang++";
+            var flags = FlagsInput.Text.Trim();
+            _activeSession.PinnedAsmText = _activeSession.AsmText;
+            _activeSession.PinnedLabel = $"{compiler} {flags}";
+            PinButton.Content = "⊟ unpin";
+            PinButton.ToolTip = $"Pinned: {_activeSession.PinnedLabel}";
+            // Refresh display to show diff against current
+            AsmOutput.Text = _activeSession.AsmText;
+        }
+
+        private void UnpinOrPin_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activeSession == null) return;
+            if (_activeSession.PinnedAsmText != null)
+            {
+                _activeSession.PinnedAsmText = null;
+                _activeSession.PinnedLabel = null;
+                PinButton.Content = "⊞ pin";
+                PinButton.ToolTip = "Pin current ASM as baseline for diff";
+                AsmOutput.Text = _activeSession.AsmText;
+            }
+            else
+            {
+                PinButton_Click(sender, e);
+            }
+        }
+
+        private static string BuildDiff(string baseAsm, string newAsm, string? baseLabel, string newLabel)
+        {
+            var baseLines = baseAsm.Split('\n');
+            var newLines = newAsm.Split('\n');
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"; ── DIFF  [{baseLabel ?? "pinned"}]  vs  [{newLabel}] ──");
+            sb.AppendLine();
+
+            // Simple line-by-line diff: find removed and added lines
+            var baseSet = new HashSet<string>(baseLines.Select(l => l.TrimEnd()), StringComparer.Ordinal);
+            var newSet = new HashSet<string>(newLines.Select(l => l.TrimEnd()), StringComparer.Ordinal);
+
+            // Output new ASM annotated with +/- markers
+            foreach (var line in newLines)
+            {
+                var trimmed = line.TrimEnd();
+                if (!baseSet.Contains(trimmed) && !string.IsNullOrWhiteSpace(trimmed))
+                    sb.AppendLine("+ " + trimmed);
+                else
+                    sb.AppendLine("  " + trimmed);
+            }
+
+            // Lines only in base (removed)
+            sb.AppendLine();
+            sb.AppendLine("; ── removed from baseline ──");
+            bool anyRemoved = false;
+            foreach (var line in baseLines)
+            {
+                var trimmed = line.TrimEnd();
+                if (!newSet.Contains(trimmed) && !string.IsNullOrWhiteSpace(trimmed))
+                {
+                    sb.AppendLine("- " + trimmed);
+                    anyRemoved = true;
+                }
+            }
+            if (!anyRemoved)
+                sb.AppendLine("; (none)");
+
+            return sb.ToString().TrimEnd();
+        }
+
+        // ── Quick jump: click ASM line → scroll source to that line ──────────
+
+        private void AsmOutput_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_activeSession == null || _activeSession.AsmMap.Count == 0) return;
+            var caretLine = AsmOutput.TextArea.Caret.Line;
+            // Find the source line that maps to this ASM line
+            foreach (var (srcLine, asmLines) in _activeSession.AsmMap)
+            {
+                if (asmLines.Contains(caretLine))
+                {
+                    var line = SourceEditor.Document.GetLineByNumber(
+                        Math.Min(srcLine, SourceEditor.Document.LineCount));
+                    SourceEditor.ScrollTo(srcLine, 1);
+                    SourceEditor.TextArea.Caret.Line = srcLine;
+                    SourceEditor.TextArea.Caret.Column = 1;
+                    SourceEditor.Focus();
+                    return;
+                }
+            }
+        }
+
+        // ── Flag presets ──────────────────────────────────────────────────────
+
+        private void SavePresetButton_Click(object sender, RoutedEventArgs e)
+        {
+            var flags = FlagsInput.Text.Trim();
+            if (string.IsNullOrWhiteSpace(flags)) return;
+            var name = Microsoft.VisualBasic.Interaction.InputBox(
+                "Preset name:", "Save Flag Preset", flags[..Math.Min(20, flags.Length)]);
+            if (string.IsNullOrWhiteSpace(name)) return;
+            var prefs = PreferencesStore.Load();
+            prefs.CompilerFlagPresets[name] = flags;
+            PreferencesStore.Save(prefs);
+            RefreshPresetPicker();
+        }
+
+        private void SaveMcaPresetButton_Click(object sender, RoutedEventArgs e)
+        {
+            var flags = McaFlagsInput.Text.Trim();
+            if (string.IsNullOrWhiteSpace(flags)) return;
+            var name = Microsoft.VisualBasic.Interaction.InputBox(
+                "Preset name:", "Save MCA Preset", flags[..Math.Min(20, flags.Length)]);
+            if (string.IsNullOrWhiteSpace(name)) return;
+            var prefs = PreferencesStore.Load();
+            prefs.McaFlagPresets[name] = flags;
+            PreferencesStore.Save(prefs);
+            RefreshMcaPresetPicker();
+        }
+
+        private void RefreshPresetPicker()
+        {
+            var prefs = PreferencesStore.Load();
+            PresetPickerList.ItemsSource = prefs.CompilerFlagPresets
+                .Select(kv => new FlagItem { Flag = kv.Key, Description = kv.Value })
+                .ToList();
+        }
+
+        private void RefreshMcaPresetPicker()
+        {
+            var prefs = PreferencesStore.Load();
+            McaPresetPickerList.ItemsSource = prefs.McaFlagPresets
+                .Select(kv => new FlagItem { Flag = kv.Key, Description = kv.Value })
+                .ToList();
+        }
+
+        private void PresetItem_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border b && b.Tag is string flags)
+            {
+                FlagsInput.Text = flags;
+                PresetPickerPopup.IsOpen = false;
+            }
+        }
+
+        private void McaPresetItem_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border b && b.Tag is string flags)
+            {
+                McaFlagsInput.Text = flags;
+                McaPresetPickerPopup.IsOpen = false;
+            }
+        }
+
+        private void PresetPickerButton_Click(object sender, RoutedEventArgs e)
+        {
+            RefreshPresetPicker();
+            PresetPickerPopup.IsOpen = !PresetPickerPopup.IsOpen;
+        }
+
+        private void McaPresetPickerButton_Click(object sender, RoutedEventArgs e)
+        {
+            RefreshMcaPresetPicker();
+            McaPresetPickerPopup.IsOpen = !McaPresetPickerPopup.IsOpen;
+        }
+
+        // ── Multi-compiler compare ────────────────────────────────────────────
+
+        private async void CompareButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_compareRunning || _activeSession == null) return;
+            if (string.IsNullOrWhiteSpace(SourceEditor.Text)) return;
+
+            _compareRunning = true;
+            CompareButton.IsEnabled = false;
+            ShowOutputPanel();
+            CompilerOutput.Text = "Running all compilers...";
+            AsmOutput.Text = string.Empty;
+
+            try
+            {
+                var std = (StdSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "c++20";
+                var flags = FlagsInput.Text.Trim();
+                var src = SourceEditor.Text;
+
+                var compilers = new[] { "clang++", "g++", "cl.exe" };
+                var tasks = compilers.Select(c =>
+                    CompilerService.CompileAsync(c, std, flags, src)).ToArray();
+
+                var results = await Task.WhenAll(tasks);
+
+                var sb = new StringBuilder();
+                var compSb = new StringBuilder();
+
+                for (int i = 0; i < compilers.Length; i++)
+                {
+                    var r = results[i];
+                    sb.AppendLine($"; ══════════════════════════════════════");
+                    sb.AppendLine($"; {compilers[i]}  {flags}");
+                    sb.AppendLine($"; ══════════════════════════════════════");
+                    sb.AppendLine(r.Success ? r.AsmOutput : $"; FAILED — see compiler output");
+                    sb.AppendLine();
+                    compSb.AppendLine($"── {compilers[i]} ──");
+                    compSb.AppendLine(r.CompilerOutput);
+                    compSb.AppendLine();
+                }
+
+                AsmOutput.Text = sb.ToString().TrimEnd();
+                CompilerOutput.Text = compSb.ToString().TrimEnd();
+                UpdateAsmStats(AsmOutput.Text);
+            }
+            catch (Exception ex)
+            {
+                CompilerOutput.Text = $"Error during compare:\n{ex.Message}";
+            }
+            finally
+            {
+                _compareRunning = false;
+                CompareButton.IsEnabled = true;
+            }
+        }
+
+        // ── Inline MCA annotations ────────────────────────────────────────────
+
+        private async void InlineMcaButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activeSession == null || string.IsNullOrWhiteSpace(_activeSession.RawAsmText)) return;
+
+            InlineMcaButton.IsEnabled = false;
+            InlineMcaButton.Content = "⏳ annotating";
+
+            try
+            {
+                var mcaResult = await CompilerService.RunMcaAsync(
+                    _activeSession.RawAsmText,
+                    McaFlagsInput.Text.Trim() + " --instruction-info",
+                    _activeSession.CompilerKind);
+
+                if (!mcaResult.Success)
+                {
+                    CompilerOutput.Text = "llvm-mca failed:\n" + mcaResult.Output;
+                    return;
+                }
+
+                AsmOutput.Text = InjectMcaAnnotations(_activeSession.AsmText, mcaResult.Output);
+            }
+            catch (Exception ex)
+            {
+                CompilerOutput.Text = $"Inline MCA error:\n{ex.Message}";
+            }
+            finally
+            {
+                InlineMcaButton.IsEnabled = true;
+                InlineMcaButton.Content = "⚡ annotate";
+            }
+        }
+
+        private static string InjectMcaAnnotations(string displayAsm, string mcaOutput)
+        {
+            // Parse the llvm-mca instruction-info table:
+            // Columns: [#]  [Latency]  [RThroughput]  [NumMicroOpcodes]  [Mnemonic]
+            // We match lines like:  [1]    5           1.00         1           vmovdqu
+            var rowRx = new System.Text.RegularExpressions.Regex(
+                @"^\s*\[(\d+)\]\s+(\d+)\s+([\d.]+)\s+\d+\s+(\w+)",
+                System.Text.RegularExpressions.RegexOptions.Compiled |
+                System.Text.RegularExpressions.RegexOptions.Multiline);
+
+            // Build mnemonic → "latency/rtput" annotation (last win if duplicate)
+            var annotations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (System.Text.RegularExpressions.Match m in rowRx.Matches(mcaOutput))
+            {
+                var mnemonic = m.Groups[4].Value;
+                var latency = m.Groups[2].Value;
+                var rtput = m.Groups[3].Value;
+                annotations[mnemonic] = $"lat:{latency} rtp:{rtput}";
+            }
+
+            if (annotations.Count == 0) return displayAsm;
+
+            var mnemonicRx = new System.Text.RegularExpressions.Regex(@"^\s+(\w+)");
+            var sb = new StringBuilder();
+            foreach (var line in displayAsm.Split('\n'))
+            {
+                var m = mnemonicRx.Match(line);
+                if (m.Success && annotations.TryGetValue(m.Groups[1].Value, out var ann))
+                    sb.AppendLine(line.TrimEnd().PadRight(48) + "  ; " + ann);
+                else
+                    sb.AppendLine(line.TrimEnd());
+            }
+            return sb.ToString().TrimEnd();
+        }
+
+        // ── ASM search / filter ───────────────────────────────────────────────
+
+        private void AsmSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var query = AsmSearchBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(query) || _activeSession == null)
+            {
+                AsmOutput.Text = _activeSession?.AsmText ?? string.Empty;
+                return;
+            }
+
+            // Filter: keep matching lines and surrounding context (label + instructions)
+            var lines = _activeSession.AsmText.Split('\n');
+            var sb = new StringBuilder();
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                // Always keep labels
+                var t = line.TrimStart();
+                bool isLabel = !line.StartsWith(' ') && !line.StartsWith('\t') && t.EndsWith(':');
+                if (isLabel || line.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    sb.AppendLine(line.TrimEnd());
+            }
+            AsmOutput.Text = sb.ToString().TrimEnd();
+        }
+
+    }
 
     public class RelayCommand : ICommand
     {

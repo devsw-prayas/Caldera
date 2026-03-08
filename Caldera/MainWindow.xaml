@@ -158,7 +158,7 @@
                                  Margin="0,0,0,0"/>
 
                         <!-- Flag picker button + popup, anchored to a Grid so popup aligns -->
-                        <Grid Margin="4,0,8,0">
+                        <Grid Margin="4,0,0,0">
                             <Button x:Name="FlagPickerButton"
                                     Content="▾ flags"
                                     Width="68" Height="30"
@@ -250,6 +250,70 @@
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                     </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+
+                        <!-- Preset picker -->
+                        <Grid Margin="2,0,8,0">
+                            <Button x:Name="PresetPickerButton"
+                                    Content="▾ presets"
+                                    Width="76" Height="30"
+                                    Style="{StaticResource MenuBarButton}"
+                                    Click="PresetPickerButton_Click"/>
+                            <Popup x:Name="PresetPickerPopup"
+                                   PlacementTarget="{Binding ElementName=PresetPickerButton}"
+                                   Placement="Bottom"
+                                   AllowsTransparency="True"
+                                   StaysOpen="False"
+                                   PopupAnimation="Fade">
+                                <Border Background="{DynamicResource PanelBgBrush}"
+                                        BorderBrush="{DynamicResource BorderMidBrush}"
+                                        BorderThickness="1" CornerRadius="8"
+                                        MinWidth="260" MaxHeight="300" Margin="0,2,0,0">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="16" ShadowDepth="4" Color="#000000" Opacity="0.6"/>
+                                    </Border.Effect>
+                                    <StackPanel>
+                                        <Button Content="＋ save current flags as preset"
+                                                Style="{StaticResource MenuBarButton}"
+                                                HorizontalContentAlignment="Left" Padding="10,0"
+                                                Click="SavePresetButton_Click"/>
+                                        <Border Height="1" Margin="8,2" Background="{DynamicResource BorderDimBrush}" Opacity="0.5"/>
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="240">
+                                            <ItemsControl x:Name="PresetPickerList" Margin="6,4,6,8">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border CornerRadius="4" Margin="2,1" Padding="8,5"
+                                                                Cursor="Hand" Tag="{Binding Description}"
+                                                                MouseLeftButtonDown="PresetItem_Click">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Style.Triggers>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter Property="Background" Value="{DynamicResource BorderDimBrush}"/>
+                                                                        </Trigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding Flag}"
+                                                                           Foreground="{DynamicResource AccentBrush}"
+                                                                           FontFamily="Consolas" FontSize="12" MinWidth="80"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Description}"
+                                                                           Foreground="#c0b0b0" FontFamily="Consolas" FontSize="11"
+                                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </StackPanel>
                                 </Border>
                             </Popup>
                         </Grid>
@@ -364,6 +428,81 @@
                                 Width="90" Height="30"
                                 Style="{StaticResource RunButton}"
                                 Click="McaButton_Click"/>
+                        <!-- MCA preset picker -->
+                        <Grid Margin="2,0,0,0">
+                            <Button x:Name="McaPresetPickerButton"
+                                    Content="▾ presets"
+                                    Width="76" Height="30"
+                                    Style="{StaticResource MenuBarButton}"
+                                    Click="McaPresetPickerButton_Click"/>
+                            <Popup x:Name="McaPresetPickerPopup"
+                                   PlacementTarget="{Binding ElementName=McaPresetPickerButton}"
+                                   Placement="Bottom"
+                                   AllowsTransparency="True"
+                                   StaysOpen="False"
+                                   PopupAnimation="Fade">
+                                <Border Background="{DynamicResource PanelBgBrush}"
+                                        BorderBrush="{DynamicResource BorderMidBrush}"
+                                        BorderThickness="1" CornerRadius="8"
+                                        MinWidth="260" MaxHeight="300" Margin="0,2,0,0">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="16" ShadowDepth="4" Color="#000000" Opacity="0.6"/>
+                                    </Border.Effect>
+                                    <StackPanel>
+                                        <Button Content="＋ save current MCA flags as preset"
+                                                Style="{StaticResource MenuBarButton}"
+                                                HorizontalContentAlignment="Left" Padding="10,0"
+                                                Click="SaveMcaPresetButton_Click"/>
+                                        <Border Height="1" Margin="8,2" Background="{DynamicResource BorderDimBrush}" Opacity="0.5"/>
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="240">
+                                            <ItemsControl x:Name="McaPresetPickerList" Margin="6,4,6,8">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border CornerRadius="4" Margin="2,1" Padding="8,5"
+                                                                Cursor="Hand" Tag="{Binding Description}"
+                                                                MouseLeftButtonDown="McaPresetItem_Click">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Style.Triggers>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter Property="Background" Value="{DynamicResource BorderDimBrush}"/>
+                                                                        </Trigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding Flag}"
+                                                                           Foreground="{DynamicResource AccentBrush}"
+                                                                           FontFamily="Consolas" FontSize="12" MinWidth="80"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Description}"
+                                                                           Foreground="#c0b0b0" FontFamily="Consolas" FontSize="11"
+                                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </StackPanel>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <Button x:Name="InlineMcaButton" Content="⚡ annotate"
+                                Width="90" Height="30"
+                                Style="{StaticResource MenuBarButton}"
+                                ToolTip="Inject llvm-mca latency annotations inline into ASM"
+                                Margin="6,0,0,0"
+                                Click="InlineMcaButton_Click"/>
+                        <Button x:Name="CompareButton" Content="⊞ compare"
+                                Width="100" Height="30"
+                                Style="{StaticResource MenuBarButton}"
+                                ToolTip="Compile with all compilers and show side-by-side ASM"
+                                Margin="6,0,0,0"
+                                Click="CompareButton_Click"/>
                         <Button Content="✕  Clear"
                                 Width="80" Height="30"
                                 Style="{StaticResource MenuBarButton}"
@@ -381,7 +520,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- ── TOP: EDITOR PANES ── -->
-                    <Grid Grid.Row="0">
+                    <Grid Grid.Row="0" x:Name="EditorAreaGrid">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="5"/>
@@ -541,6 +680,21 @@
                                             <TextBlock Text="ASM" Foreground="{DynamicResource AccentBrush}"
                                                        FontSize="10" FontWeight="Bold" FontFamily="Consolas"/>
                                         </Border>
+                                        <!-- Stats label -->
+                                        <TextBlock x:Name="AsmStatsLabel"
+                                                   Foreground="{DynamicResource TextDimBrush}"
+                                                   FontSize="11" FontFamily="Consolas"
+                                                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                   Margin="52,0,0,0"/>
+                                        <!-- Search box -->
+                                        <TextBox x:Name="AsmSearchBox"
+                                                 Width="120" Height="22"
+                                                 HorizontalAlignment="Right"
+                                                 Margin="0,0,298,0"
+                                                 Style="{StaticResource CalderaTextBox}"
+                                                 FontSize="11"
+                                                 ToolTip="Filter ASM (mnemonic / text)"
+                                                 TextChanged="AsmSearchBox_TextChanged"/>
                                         <TextBlock Text="output.asm"
                                                    Foreground="{DynamicResource TextDimBrush}"
                                                    FontSize="13" FontFamily="Consolas"
@@ -551,10 +705,18 @@
                                                 Style="{StaticResource MenuBarButton}"
                                                 FontSize="10" Height="22"
                                                 Click="CopyAsmButton_Click"/>
+                                        <Button x:Name="PinButton"
+                                                Content="⊞ pin"
+                                                HorizontalAlignment="Right"
+                                                Margin="0,0,140,0"
+                                                Style="{StaticResource MenuBarButton}"
+                                                FontSize="10" Height="22"
+                                                ToolTip="Pin current ASM as baseline for diff"
+                                                Click="UnpinOrPin_Click"/>
                                         <Button x:Name="OpcodeRefToggle"
                                                 Content="⊞ ref"
                                                 HorizontalAlignment="Right"
-                                                Margin="0,0,140,0"
+                                                Margin="0,0,195,0"
                                                 Style="{StaticResource MenuBarButton}"
                                                 FontSize="10" Height="22"
                                                 Click="OpcodeRefToggle_Click"/>

@@ -27,6 +27,10 @@ namespace Caldera
         public string CompilerText { get; set; } = string.Empty;
         public string McaText { get; set; } = string.Empty;
 
+        // ── Pinned (baseline) result for diff ────────────────────────────────
+        public string? PinnedAsmText { get; set; } = null;
+        public string? PinnedLabel { get; set; } = null;   // e.g. "clang++ -O1"
+
         public Dictionary<int, List<int>> AsmMap { get; set; } = new();
         public AsmMapper.CompilerKind CompilerKind { get; set; } = AsmMapper.CompilerKind.ClangOrGcc;
     }
