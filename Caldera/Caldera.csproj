@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -40,30 +40,19 @@
 
   <ItemGroup>
     <Content Include="favicon.ico" />
-    <Content Include="Highlighting\Asm-Corium.xshd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Highlighting\Asm-Iota.xshd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Highlighting\Asm-Spectra.xshd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Highlighting\Asm-StormSTL.xshd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Highlighting\Cpp-Corium.xshd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Highlighting\Cpp-Iota.xshd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Highlighting\Cpp-Spectra.xshd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Highlighting\Cpp-StormSTL.xshd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Content Include="Highlighting\Asm-Bloodshed.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Content Include="Highlighting\Asm-Outerspace.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Content Include="Highlighting\Asm-Slipstream.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Content Include="Highlighting\Asm-Amber Steel.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Content Include="Highlighting\Asm-Zenith.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Content Include="Highlighting\Asm-Hailstorm.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+
+    <Content Include="Highlighting\Cpp-Bloodshed.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Content Include="Highlighting\Cpp-Outerspace.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Content Include="Highlighting\Cpp-Slipstream.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Content Include="Highlighting\Cpp-Amber Steel.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Content Include="Highlighting\Cpp-Zenith.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Content Include="Highlighting\Cpp-Hailstorm.xshd"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
     <Resource Include="favicon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>

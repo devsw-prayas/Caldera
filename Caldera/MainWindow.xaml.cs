@@ -24,6 +24,8 @@ namespace Caldera
 
         // ── ASM highlight ─────────────────────────────────────────────────────
         private AsmHighlightRenderer? _asmHighlighter;
+        private UI.DiffHighlightRenderer? _diffHighlighter;
+        private UI.AsmSearchRenderer? _searchHighlighter;
 
         // ── Opcode reference panel ────────────────────────────────────────────
         private bool _opcodePanelOpen = false;
@@ -31,8 +33,6 @@ namespace Caldera
         // ── Persistent preferences ────────────────────────────────────────────
         private PreferencesData _prefs = new();
 
-        private bool _isRunning      = false;
-        private bool _mcaRunning     = false;
         private bool _compareRunning = false;
 
         // ── CancellationTokenSources ──────────────────────────────────────────
@@ -139,6 +139,12 @@ namespace Caldera
                 {
                     NewTab(null, "int main() {\n    return 0;\n}");
                 }
+
+                // Defer everything to UI construction completion
+                CompilerSelector.SelectionChanged += CompilerSelector_SelectionChanged;
+                StdSelector.SelectionChanged += StdSelector_SelectionChanged;
+                FlagsInput.TextChanged += ToolbarInput_TextChanged;
+                McaFlagsInput.TextChanged += ToolbarInput_TextChanged;
             });
         }
 

@@ -11,13 +11,29 @@ namespace Caldera
 
         private void RestoreToolbarState(PreferencesData prefs)
         {
-            foreach (ComboBoxItem item in CompilerSelector.Items)
-                if (item.Content?.ToString() == prefs.Compiler)
-                { CompilerSelector.SelectedItem = item; break; }
+            if (CompilerSelector != null)
+            {
+                foreach (var item in CompilerSelector.Items)
+                {
+                    if (item is CompilerInfo info && info.Name == prefs.Compiler)
+                    {
+                        CompilerSelector.SelectedItem = info;
+                        break;
+                    }
+                }
+            }
 
-            foreach (ComboBoxItem item in StdSelector.Items)
-                if (item.Content?.ToString() == prefs.Std)
-                { StdSelector.SelectedItem = item; break; }
+            if (StdSelector != null)
+            {
+                foreach (ComboBoxItem item in StdSelector.Items)
+                {
+                    if (item.Content?.ToString() == prefs.Std)
+                    {
+                        StdSelector.SelectedItem = item;
+                        break;
+                    }
+                }
+            }
 
             FlagsInput.Text = prefs.CompilerFlags;
             McaFlagsInput.Text = prefs.McaFlags;
@@ -25,6 +41,8 @@ namespace Caldera
 
         private void SaveToolbarState()
         {
+            if (CompilerSelector == null || StdSelector == null || FlagsInput == null || _prefs == null) return;
+
             var compiler = (CompilerSelector.SelectedItem as CompilerInfo)?.Name ?? "clang++";
             var std = (StdSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "c++20";
             var flags = FlagsInput.Text.Trim();
@@ -49,8 +67,9 @@ namespace Caldera
 
         private void RefreshFlagPicker()
         {
-            if (FlagGroupsControl is null) return;
-            var compiler = (CompilerSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "clang++";
+            if (FlagGroupsControl is null || CompilerSelector == null) return;
+
+            var compiler = (CompilerSelector.SelectedItem as CompilerInfo)?.Name ?? "clang++";
             FlagGroupsControl.ItemsSource = FlagPickerData.CompilerFlags.TryGetValue(compiler, out var groups)
                 ? groups : new List<FlagGroup>();
         }
@@ -58,10 +77,22 @@ namespace Caldera
         private void CompilerSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             RefreshFlagPicker();
-            var isMsvc = (CompilerSelector.SelectedItem as ComboBoxItem)?.Content as string == "cl.exe";
+            SaveToolbarState(); // Ensure session updates immediately
+            
+            var isMsvc = (CompilerSelector.SelectedItem as CompilerInfo)?.Name == "cl.exe";
             if (McaButton == null) return;
             McaButton.IsEnabled = !isMsvc;
             McaButton.ToolTip = isMsvc ? "llvm-mca is not supported for cl.exe" : null;
+        }
+
+        private void StdSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SaveToolbarState();
+        }
+
+        private void ToolbarInput_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            SaveToolbarState();
         }
 
         private void FlagPickerButton_Click(object sender, RoutedEventArgs e) =>

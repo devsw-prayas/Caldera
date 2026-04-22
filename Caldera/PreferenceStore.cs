@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -11,7 +11,7 @@ namespace Caldera
 
     public class PreferencesData
     {
-        public string Theme { get; set; } = "Corium";
+        public string Theme { get; set; } = "Bloodshed";
         public string FontFamily { get; set; } = "Consolas";
         public double FontSize { get; set; } = 13;
         public double OutputFontSize { get; set; } = 12;
@@ -92,8 +92,7 @@ namespace Caldera
             CompilerPaths.Mca = data.McaPath;
 
             // Theme
-            if (PreferencesWindow.Themes.TryGetValue(data.Theme, out var colors))
-                ThemeManager.ApplyTheme(data.Theme, colors);
+            ThemeManager.ApplyTheme(data.Theme);
 
             // Font
             ThemeManager.ApplyFont(data.FontFamily, data.FontSize);

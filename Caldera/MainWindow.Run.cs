@@ -17,12 +17,15 @@ namespace Caldera
 
             if (_activeSession == null || string.IsNullOrWhiteSpace(SourceEditor.Text)) return;
 
-            _isRunning = true;
+            // Sync UI state to session before compiling
+            SaveToolbarState();
+
+            RunButton.IsEnabled = false; // Disable to prevent double-clicks
             ShowOutputPanel();
 
             CompilerOutput.Text = "Compiling...";
             AsmOutput.Text = string.Empty;
-            McaOutput.Text = string.Empty;
+            SetMcaDisplay(string.Empty);
             _asmHighlighter?.Clear();
 
             try
@@ -45,10 +48,18 @@ namespace Caldera
                 CompilerOutput.Text = result.CompilerOutput;
 
                 if (_activeSession.PinnedAsmText != null)
-                    AsmOutput.Text = BuildDiff(_activeSession.PinnedAsmText, result.AsmOutput,
-                                               _activeSession.PinnedLabel, $"{compiler} {flags}");
+                {
+                    var (diffText, diffMap) = BuildMyersDiff(_activeSession.PinnedAsmText, result.AsmOutput,
+                                                             _activeSession.PinnedLabel, $"{compiler} {flags}");
+                    AsmOutput.Text = diffText;
+                    _diffHighlighter?.SetDiffMap(diffMap);
+                }
                 else
+                {
                     AsmOutput.Text = result.AsmOutput;
+                    _diffHighlighter?.SetDiffMap(new System.Collections.Generic.Dictionary<int, Core.DiffOp>());
+                }
+                AsmOutput.TextArea.TextView.Redraw();
 
                 UpdateAsmStats(result.AsmOutput);
 
@@ -65,7 +76,6 @@ namespace Caldera
             {
                 if (!ct.IsCancellationRequested)
                 {
-                    _isRunning = false;
                     RunButton.IsEnabled = true;
                 }
             }
@@ -86,7 +96,7 @@ namespace Caldera
             _activeSession.AsmMap = new();
             AsmOutput.Text = string.Empty;
             CompilerOutput.Text = string.Empty;
-            McaOutput.Text = string.Empty;
+            SetMcaDisplay(string.Empty);
             if (AsmStatsLabel != null) AsmStatsLabel.Text = string.Empty;
             if (PinButton != null) { PinButton.Content = "⊞ pin"; PinButton.ToolTip = null; }
             _asmHighlighter?.Clear();

@@ -86,7 +86,9 @@ namespace Caldera
             AsmOutput.TextArea.FontSize = size;
             AsmOutput.TextArea.TextView.Redraw();
             CompilerOutput.FontSize = size;
-            McaOutput.FontSize = size;
+            McaOutputRaw.FontSize = size;
+            McaSummaryText.FontSize = size;
+            McaDataGrid.FontSize = size;
         }
 
         private void OnFontChanged(string family, double size)

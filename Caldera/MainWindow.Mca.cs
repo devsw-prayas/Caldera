@@ -10,6 +10,32 @@ namespace Caldera
     {
         // ── llvm-mca ──────────────────────────────────────────────────────────
 
+        private void SetMcaDisplay(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                McaOutputGrid.Visibility = Visibility.Collapsed;
+                McaOutputRaw.Visibility = Visibility.Visible;
+                McaOutputRaw.Text = string.Empty;
+                return;
+            }
+
+            var parsed = Core.McaParser.Parse(text);
+            if (parsed.Instructions.Count > 0)
+            {
+                McaOutputRaw.Visibility = Visibility.Collapsed;
+                McaOutputGrid.Visibility = Visibility.Visible;
+                McaSummaryText.Text = parsed.Summary;
+                McaDataGrid.ItemsSource = parsed.Instructions;
+            }
+            else
+            {
+                McaOutputGrid.Visibility = Visibility.Collapsed;
+                McaOutputRaw.Visibility = Visibility.Visible;
+                McaOutputRaw.Text = text;
+            }
+        }
+
         private async void McaButton_Click(object sender, RoutedEventArgs e)
         {
             _mcaCts?.Cancel();
@@ -17,8 +43,7 @@ namespace Caldera
             var ct = _mcaCts.Token;
 
             if (_activeSession == null) return;
-            _mcaRunning = true;
-            McaOutput.Text = "Running llvm-mca...";
+            SetMcaDisplay("Running llvm-mca...");
 
             try
             {
@@ -30,17 +55,16 @@ namespace Caldera
                 if (ct.IsCancellationRequested) return;
                 
                 _activeSession.McaText = result.Output;
-                McaOutput.Text = result.Output;
+                SetMcaDisplay(result.Output);
             }
             catch (Exception ex)
             {
-                McaOutput.Text = $"Error launching llvm-mca:\n{ex.Message}";
+                SetMcaDisplay($"Error launching llvm-mca:\n{ex.Message}");
             }
             finally
             {
                 if (!ct.IsCancellationRequested)
                 {
-                    _mcaRunning = false;
                 }
             }
         }

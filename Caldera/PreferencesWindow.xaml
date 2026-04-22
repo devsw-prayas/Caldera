@@ -1,4 +1,4 @@
-﻿<Window x:Class="Caldera.PreferencesWindow"
+<Window x:Class="Caldera.PreferencesWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Preferences"
@@ -57,107 +57,19 @@
                                FontFamily="{StaticResource Orbitron}"
                                Margin="0,0,0,10"/>
 
-                    <WrapPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <!-- Corium -->
-                        <Border x:Name="ThemeCorium" Width="108" Height="64" CornerRadius="7"
-                                Margin="0,0,8,8" Cursor="Hand" Tag="Corium"
-                                MouseLeftButtonDown="Theme_Click" BorderThickness="2">
-                            <Border.BorderBrush>
-                                <SolidColorBrush Color="#ff4020" Opacity="0.6"/>
-                            </Border.BorderBrush>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#3a0a0a" Offset="0"/>
-                                    <GradientStop Color="#0a0005" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <TextBlock Text="CORIUM" Foreground="#ff4020"
-                                           FontSize="10" FontWeight="Bold" FontFamily="Consolas"
-                                           HorizontalAlignment="Center"/>
-                                <Border Width="40" Height="4" CornerRadius="2" Margin="0,4,0,0">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="#ff4020"/>
-                                    </Border.Background>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Iota -->
-                        <Border x:Name="ThemeIota" Width="108" Height="64" CornerRadius="7"
-                                Margin="0,0,8,8" Cursor="Hand" Tag="Iota"
-                                MouseLeftButtonDown="Theme_Click" BorderThickness="2">
-                            <Border.BorderBrush>
-                                <SolidColorBrush Color="#00bcd4" Opacity="0.4"/>
-                            </Border.BorderBrush>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#0a1a2a" Offset="0"/>
-                                    <GradientStop Color="#020d15" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <TextBlock Text="IOTA" Foreground="#00bcd4"
-                                           FontSize="10" FontWeight="Bold" FontFamily="Consolas"
-                                           HorizontalAlignment="Center"/>
-                                <Border Width="40" Height="4" CornerRadius="2" Margin="0,4,0,0">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="#00bcd4"/>
-                                    </Border.Background>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- StormSTL -->
-                        <Border x:Name="ThemeStormSTL" Width="108" Height="64" CornerRadius="7"
-                                Margin="0,0,8,8" Cursor="Hand" Tag="StormSTL"
-                                MouseLeftButtonDown="Theme_Click" BorderThickness="2">
-                            <Border.BorderBrush>
-                                <SolidColorBrush Color="#4caf50" Opacity="0.4"/>
-                            </Border.BorderBrush>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#0a1f0a" Offset="0"/>
-                                    <GradientStop Color="#020a02" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <TextBlock Text="STORMSTL" Foreground="#4caf50"
-                                           FontSize="10" FontWeight="Bold" FontFamily="Consolas"
-                                           HorizontalAlignment="Center"/>
-                                <Border Width="40" Height="4" CornerRadius="2" Margin="0,4,0,0">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="#4caf50"/>
-                                    </Border.Background>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Spectra -->
-                        <Border x:Name="ThemeSpectra" Width="108" Height="64" CornerRadius="7"
-                                Margin="0,0,8,8" Cursor="Hand" Tag="Spectra"
-                                MouseLeftButtonDown="Theme_Click" BorderThickness="2">
-                            <Border.BorderBrush>
-                                <SolidColorBrush Color="#ffc107" Opacity="0.4"/>
-                            </Border.BorderBrush>
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#1f1200" Offset="0"/>
-                                    <GradientStop Color="#0a0700" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <TextBlock Text="SPECTRA" Foreground="#ffc107"
-                                           FontSize="10" FontWeight="Bold" FontFamily="Consolas"
-                                           HorizontalAlignment="Center"/>
-                                <Border Width="40" Height="4" CornerRadius="2" Margin="0,4,0,0">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="#ffc107"/>
-                                    </Border.Background>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-                    </WrapPanel>
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Color Scheme"
+                                   Foreground="{DynamicResource TextDimBrush}"
+                                   FontFamily="Consolas" FontSize="11" VerticalAlignment="Center"/>
+                        <ComboBox x:Name="ThemeComboBox" Grid.Column="1"
+                                  Style="{StaticResource CalderaComboBox}"
+                                  SelectionChanged="ThemeComboBox_SelectionChanged">
+                        </ComboBox>
+                    </Grid>
 
                     <!-- FONT SECTION -->
                     <TextBlock Text="EDITOR FONT"

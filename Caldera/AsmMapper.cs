@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -18,7 +18,7 @@ namespace Caldera
         private static readonly Regex PlainLabelLine =
             new(@"^([A-Za-z_?][A-Za-z0-9_?@$]*)\s*:", RegexOptions.Compiled);
 
-        public enum CompilerKind { ClangOrGcc, Msvc }
+        public enum CompilerKind { ClangOrGcc, Msvc, Nvcc }
 
         public static Dictionary<int, List<int>> Parse(
             string asmText,
@@ -31,6 +31,8 @@ namespace Caldera
 
             if (kind == CompilerKind.Msvc)
                 ParseMsvc(asmText, map);
+            else if (kind == CompilerKind.Nvcc)
+                ParseNvcc(asmText, map);
             else
                 ParseGcc(asmText, map, sourceText, displayAsm);
 
@@ -63,6 +65,59 @@ namespace Caldera
                         Regex.IsMatch(t, @"\bPROC\b|\bENDP\b|SEGMENT|ENDS|^\.",
                             RegexOptions.IgnoreCase))
                         continue;
+
+                    if (!map.TryGetValue(currentSourceLine, out var list))
+                        map[currentSourceLine] = list = new List<int>();
+                    list.Add(asmLine);
+                }
+            }
+        }
+
+        // ── NVCC (CUDA) ────────────────────────────────────────────────────────
+
+        private static readonly Regex NvccLocTag =
+            new(@"^\s*\.loc\s+\d+\s+(\d+)", RegexOptions.Compiled);
+
+        private static readonly Regex NvccSassFileTag =
+            new(@"//\s+File\s+"".*""\s*,\s*line\s+(\d+)", RegexOptions.Compiled);
+
+        private static void ParseNvcc(string asmText, Dictionary<int, List<int>> map)
+        {
+            var lines = asmText.Split('\n');
+            int currentSourceLine = -1;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                int asmLine = i + 1;
+                var line = lines[i];
+
+                var mLoc = NvccLocTag.Match(line);
+                if (mLoc.Success)
+                {
+                    currentSourceLine = int.Parse(mLoc.Groups[1].Value);
+                    continue;
+                }
+
+                var mSass = NvccSassFileTag.Match(line);
+                if (mSass.Success)
+                {
+                    currentSourceLine = int.Parse(mSass.Groups[1].Value);
+                    continue;
+                }
+
+                if (currentSourceLine > 0 && !string.IsNullOrWhiteSpace(line))
+                {
+                    var t = line.TrimStart();
+                    if (t.StartsWith("//") || t.StartsWith("/*") || t.StartsWith('#') || t.StartsWith('.'))
+                    {
+                        if (t.StartsWith(".visible") || t.StartsWith(".entry") || t.StartsWith(".func"))
+                            currentSourceLine = -1; // reset on new function
+                        continue;
+                    }
+
+                    // For SASS, we have instructions like:
+                    // /*0010*/  {  LDC R0,...  }
+                    // It's definitely an instruction.
 
                     if (!map.TryGetValue(currentSourceLine, out var list))
                         map[currentSourceLine] = list = new List<int>();

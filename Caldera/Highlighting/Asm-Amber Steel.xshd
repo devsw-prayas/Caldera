@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="Asm" extensions=".asm;.s" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment"      foreground="#78350f" />
+  <Color name="Label"        foreground="#d97706" fontWeight="bold" />
+  <Color name="Instruction"  foreground="#f59e0b" />
+  <Color name="Register"     foreground="#d97706" />
+  <Color name="Number"       foreground="#a78bfa" />
+  <Color name="Directive"    foreground="#fcd34d" />
+  <Color name="String"       foreground="#a78bfa" />
+  <RuleSet ignoreCase="true">
+    <Span color="Comment"><Begin>;</Begin><End>$</End></Span>
+    <Span color="Comment"><Begin>\#</Begin><End>$</End></Span>
+    <Span color="String"><Begin>"</Begin><End>"</End></Span>
+    <Rule color="Label">^[A-Za-z_\.][A-Za-z0-9_\.]*\s*:</Rule>
+    <Rule color="Number">\b0[xX][0-9a-fA-F]+\b|\b[0-9]+\b</Rule>
+    <Rule color="Directive">\.[A-Za-z][A-Za-z0-9_]*</Rule>
+    <Rule color="Instruction">\b(mov|movq|movl|movw|movb|movzx|movsx|movsxd|movabs|lea|push|pop|add|sub|imul|mul|idiv|div|and|or|xor|not|neg|shl|shr|sar|cmp|test|jmp|je|jne|jz|jnz|call|ret|nop|syscall|vmovaps|vaddps|vmulps|vfmadd213ps)\b</Rule>
+    <Rule color="Register">\b(rax|rbx|rcx|rdx|rsi|rdi|rsp|rbp|r8|r9|r10|r11|r12|r13|r14|r15|eax|ebx|ecx|edx|esi|edi|esp|ebp|xmm0|xmm1|xmm2|xmm3|ymm0|ymm1|ymm2|ymm3|rip|rflags)\b</Rule>
+  </RuleSet>
+</SyntaxDefinition>

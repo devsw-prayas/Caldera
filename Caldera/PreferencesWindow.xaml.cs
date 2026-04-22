@@ -19,61 +19,100 @@ namespace Caldera
         // ── Theme colour tables (public so PreferencesStore can access) ────────
         public static readonly Dictionary<string, Dictionary<string, Color>> Themes = new()
         {
-            ["Corium"] = new()
+            // 1. Bloodshed
+            ["Bloodshed"] = new()
             {
-                ["AccentColor"]    = (Color)ColorConverter.ConvertFromString("#ff4020"),
-                ["AccentDimColor"] = (Color)ColorConverter.ConvertFromString("#cc2010"),
-                ["AccentGlowColor"]= (Color)ColorConverter.ConvertFromString("#ff4020"),
-                ["BgDark"]         = (Color)ColorConverter.ConvertFromString("#0a0005"),
-                ["BgMid"]          = (Color)ColorConverter.ConvertFromString("#1a0505"),
-                ["BgLight"]        = (Color)ColorConverter.ConvertFromString("#3a0a0a"),
-                ["BorderDim"]      = (Color)ColorConverter.ConvertFromString("#2a1010"),
-                ["BorderMid"]      = (Color)ColorConverter.ConvertFromString("#3a1010"),
-                ["PanelBg"]        = (Color)ColorConverter.ConvertFromString("#1a0808"),
-                ["PanelBgDark"]    = (Color)ColorConverter.ConvertFromString("#0d0505"),
-                ["TextDim"]        = (Color)ColorConverter.ConvertFromString("#5a3030"),
+                ["AccentColor"]    = (Color)ColorConverter.ConvertFromString("#ef4444"),
+                ["AccentDimColor"] = (Color)ColorConverter.ConvertFromString("#dc2626"),
+                ["AccentGlowColor"]= (Color)ColorConverter.ConvertFromString("#f87171"),
+                ["BgDark"]         = (Color)ColorConverter.ConvertFromString("#0a0101"),
+                ["BgMid"]          = (Color)ColorConverter.ConvertFromString("#1e0202"),
+                ["BgLight"]        = (Color)ColorConverter.ConvertFromString("#360404"),
+                ["BorderDim"]      = (Color)ColorConverter.ConvertFromString("#290303"),
+                ["BorderMid"]      = (Color)ColorConverter.ConvertFromString("#480606"),
+                ["PanelBg"]        = (Color)ColorConverter.ConvertFromString("#140202"),
+                ["PanelBgDark"]    = (Color)ColorConverter.ConvertFromString("#050000"),
+                ["TextDim"]        = (Color)ColorConverter.ConvertFromString("#fca5a5"),
             },
-            ["Iota"] = new()
+
+            // 2. Outerspace
+            ["Outerspace"] = new()
             {
-                ["AccentColor"]    = (Color)ColorConverter.ConvertFromString("#00bcd4"),
-                ["AccentDimColor"] = (Color)ColorConverter.ConvertFromString("#0097a7"),
-                ["AccentGlowColor"]= (Color)ColorConverter.ConvertFromString("#00bcd4"),
-                ["BgDark"]         = (Color)ColorConverter.ConvertFromString("#010c18"),
-                ["BgMid"]          = (Color)ColorConverter.ConvertFromString("#062030"),
-                ["BgLight"]        = (Color)ColorConverter.ConvertFromString("#0d2a40"),
-                ["BorderDim"]      = (Color)ColorConverter.ConvertFromString("#0d3048"),
-                ["BorderMid"]      = (Color)ColorConverter.ConvertFromString("#154060"),
-                ["PanelBg"]        = (Color)ColorConverter.ConvertFromString("#081a28"),
-                ["PanelBgDark"]    = (Color)ColorConverter.ConvertFromString("#050f1a"),
-                ["TextDim"]        = (Color)ColorConverter.ConvertFromString("#3a6878"),
+                ["AccentColor"]    = (Color)ColorConverter.ConvertFromString("#d946ef"),
+                ["AccentDimColor"] = (Color)ColorConverter.ConvertFromString("#c026d3"),
+                ["AccentGlowColor"]= (Color)ColorConverter.ConvertFromString("#f0abfc"),
+                ["BgDark"]         = (Color)ColorConverter.ConvertFromString("#0c0012"),
+                ["BgMid"]          = (Color)ColorConverter.ConvertFromString("#1a0028"),
+                ["BgLight"]        = (Color)ColorConverter.ConvertFromString("#320050"),
+                ["BorderDim"]      = (Color)ColorConverter.ConvertFromString("#240038"),
+                ["BorderMid"]      = (Color)ColorConverter.ConvertFromString("#420068"),
+                ["PanelBg"]        = (Color)ColorConverter.ConvertFromString("#140020"),
+                ["PanelBgDark"]    = (Color)ColorConverter.ConvertFromString("#08000a"),
+                ["TextDim"]        = (Color)ColorConverter.ConvertFromString("#f0abfc"),
             },
-            ["StormSTL"] = new()
+
+            // 3. Slipstream
+            ["Slipstream"] = new()
             {
-                ["AccentColor"]    = (Color)ColorConverter.ConvertFromString("#4caf50"),
-                ["AccentDimColor"] = (Color)ColorConverter.ConvertFromString("#388e3c"),
-                ["AccentGlowColor"]= (Color)ColorConverter.ConvertFromString("#4caf50"),
-                ["BgDark"]         = (Color)ColorConverter.ConvertFromString("#010a01"),
-                ["BgMid"]          = (Color)ColorConverter.ConvertFromString("#071a07"),
-                ["BgLight"]        = (Color)ColorConverter.ConvertFromString("#0d2e0d"),
-                ["BorderDim"]      = (Color)ColorConverter.ConvertFromString("#103510"),
-                ["BorderMid"]      = (Color)ColorConverter.ConvertFromString("#1a4a1a"),
-                ["PanelBg"]        = (Color)ColorConverter.ConvertFromString("#081508"),
-                ["PanelBgDark"]    = (Color)ColorConverter.ConvertFromString("#040c04"),
-                ["TextDim"]        = (Color)ColorConverter.ConvertFromString("#386038"),
+                ["AccentColor"]    = (Color)ColorConverter.ConvertFromString("#22d3ee"),
+                ["AccentDimColor"] = (Color)ColorConverter.ConvertFromString("#06b6d4"),
+                ["AccentGlowColor"]= (Color)ColorConverter.ConvertFromString("#67e8f9"),
+                ["BgDark"]         = (Color)ColorConverter.ConvertFromString("#02080c"),
+                ["BgMid"]          = (Color)ColorConverter.ConvertFromString("#041a24"),
+                ["BgLight"]        = (Color)ColorConverter.ConvertFromString("#062e40"),
+                ["BorderDim"]      = (Color)ColorConverter.ConvertFromString("#052230"),
+                ["BorderMid"]      = (Color)ColorConverter.ConvertFromString("#0a3f58"),
+                ["PanelBg"]        = (Color)ColorConverter.ConvertFromString("#03121a"),
+                ["PanelBgDark"]    = (Color)ColorConverter.ConvertFromString("#010609"),
+                ["TextDim"]        = (Color)ColorConverter.ConvertFromString("#7dd3fc"),
             },
-            ["Spectra"] = new()
+
+            // 4. Amber Steel
+            ["Amber Steel"] = new()
             {
-                ["AccentColor"]    = (Color)ColorConverter.ConvertFromString("#ffc107"),
-                ["AccentDimColor"] = (Color)ColorConverter.ConvertFromString("#f9a800"),
-                ["AccentGlowColor"]= (Color)ColorConverter.ConvertFromString("#ffc107"),
-                ["BgDark"]         = (Color)ColorConverter.ConvertFromString("#0c0800"),
-                ["BgMid"]          = (Color)ColorConverter.ConvertFromString("#1a1000"),
-                ["BgLight"]        = (Color)ColorConverter.ConvertFromString("#2e1a00"),
-                ["BorderDim"]      = (Color)ColorConverter.ConvertFromString("#352000"),
-                ["BorderMid"]      = (Color)ColorConverter.ConvertFromString("#4a2e00"),
-                ["PanelBg"]        = (Color)ColorConverter.ConvertFromString("#201200"),
-                ["PanelBgDark"]    = (Color)ColorConverter.ConvertFromString("#100900"),
-                ["TextDim"]        = (Color)ColorConverter.ConvertFromString("#705000"),
+                ["AccentColor"]    = (Color)ColorConverter.ConvertFromString("#f59e0b"),
+                ["AccentDimColor"] = (Color)ColorConverter.ConvertFromString("#d97706"),
+                ["AccentGlowColor"]= (Color)ColorConverter.ConvertFromString("#fcd34d"),
+                ["BgDark"]         = (Color)ColorConverter.ConvertFromString("#080400"),
+                ["BgMid"]          = (Color)ColorConverter.ConvertFromString("#1a0c00"),
+                ["BgLight"]        = (Color)ColorConverter.ConvertFromString("#2e1600"),
+                ["BorderDim"]      = (Color)ColorConverter.ConvertFromString("#231100"),
+                ["BorderMid"]      = (Color)ColorConverter.ConvertFromString("#3a1c00"),
+                ["PanelBg"]        = (Color)ColorConverter.ConvertFromString("#120800"),
+                ["PanelBgDark"]    = (Color)ColorConverter.ConvertFromString("#040200"),
+                ["TextDim"]        = (Color)ColorConverter.ConvertFromString("#c2a36b"),
+            },
+
+            // 5. Zenith
+            ["Zenith"] = new()
+            {
+                ["AccentColor"]    = (Color)ColorConverter.ConvertFromString("#4ade80"),
+                ["AccentDimColor"] = (Color)ColorConverter.ConvertFromString("#22c55e"),
+                ["AccentGlowColor"]= (Color)ColorConverter.ConvertFromString("#86efac"),
+                ["BgDark"]         = (Color)ColorConverter.ConvertFromString("#020c05"),
+                ["BgMid"]          = (Color)ColorConverter.ConvertFromString("#041e0a"),
+                ["BgLight"]        = (Color)ColorConverter.ConvertFromString("#073d14"),
+                ["BorderDim"]      = (Color)ColorConverter.ConvertFromString("#062d0e"),
+                ["BorderMid"]      = (Color)ColorConverter.ConvertFromString("#0a5420"),
+                ["PanelBg"]        = (Color)ColorConverter.ConvertFromString("#031407"),
+                ["PanelBgDark"]    = (Color)ColorConverter.ConvertFromString("#010602"),
+                ["TextDim"]        = (Color)ColorConverter.ConvertFromString("#86efac"),
+            },
+
+            // 6. Hailstorm
+            ["Hailstorm"] = new()
+            {
+                ["AccentColor"]    = (Color)ColorConverter.ConvertFromString("#a8a29e"),
+                ["AccentDimColor"] = (Color)ColorConverter.ConvertFromString("#78716c"),
+                ["AccentGlowColor"]= (Color)ColorConverter.ConvertFromString("#d6d3d1"),
+                ["BgDark"]         = (Color)ColorConverter.ConvertFromString("#0b0907"),
+                ["BgMid"]          = (Color)ColorConverter.ConvertFromString("#1a1610"),
+                ["BgLight"]        = (Color)ColorConverter.ConvertFromString("#2e2820"),
+                ["BorderDim"]      = (Color)ColorConverter.ConvertFromString("#241e17"),
+                ["BorderMid"]      = (Color)ColorConverter.ConvertFromString("#3e3628"),
+                ["PanelBg"]        = (Color)ColorConverter.ConvertFromString("#13100a"),
+                ["PanelBgDark"]    = (Color)ColorConverter.ConvertFromString("#060504"),
+                ["TextDim"]        = (Color)ColorConverter.ConvertFromString("#d6d3d1"),
             },
         };
 
@@ -97,7 +136,9 @@ namespace Caldera
             OutputFontSizeSlider.Value    = _pendingOutputFontSize;
 
             UpdateFontPreview();
-            HighlightSelectedTheme(_pendingTheme);
+            
+            ThemeComboBox.ItemsSource = Themes.Keys.OrderBy(k => k).ToList();
+            ThemeComboBox.SelectedItem = _pendingTheme;
 
             ClangPath.Text = CompilerPaths.Clang;
             GppPath.Text   = CompilerPaths.Gpp;
@@ -107,30 +148,14 @@ namespace Caldera
 
         // ── Theme card click ──────────────────────────────────────────────────
 
-        private void Theme_Click(object sender, MouseButtonEventArgs e)
+        private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is Border b && b.Tag is string name)
+            if (ThemeComboBox.SelectedItem is string name)
             {
                 _pendingTheme = name;
-                HighlightSelectedTheme(name);
             }
         }
 
-        private void HighlightSelectedTheme(string name)
-        {
-            foreach (var b in new[] { ThemeCorium, ThemeIota, ThemeStormSTL, ThemeSpectra })
-                b.Opacity = 0.55;
-
-            var selected = name switch
-            {
-                "Corium"   => ThemeCorium,
-                "Iota"     => ThemeIota,
-                "StormSTL" => ThemeStormSTL,
-                "Spectra"  => ThemeSpectra,
-                _          => ThemeCorium,
-            };
-            selected.Opacity = 1.0;
-        }
 
         // ── Font controls ─────────────────────────────────────────────────────
 
@@ -169,9 +194,8 @@ namespace Caldera
 
         private void ApplyPrefs_Click(object sender, RoutedEventArgs e)
         {
-            if (Themes.TryGetValue(_pendingTheme, out var colors))
-                ThemeManager.ApplyTheme(_pendingTheme, colors);
-
+            _prefs.Theme = _pendingTheme;
+            ThemeManager.ApplyTheme(_pendingTheme);
             ThemeManager.ApplyFont(_pendingFontFamily, _pendingFontSize);
             ThemeManager.ApplyOutputFont(_pendingOutputFontSize);
 

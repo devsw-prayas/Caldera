@@ -10,6 +10,8 @@ namespace Caldera
         public string Path { get; set; } = string.Empty;
         public bool IsMsvc => Name.Contains("cl.exe");
         public bool IsWsl => Name.StartsWith("WSL");
+
+        public override string ToString() => Name;
     }
 
     public static class CompilerDiscovery
@@ -39,6 +41,10 @@ namespace Caldera
             // 5. WSL GCC
             var wslGccExists = await CheckExe("wsl", "-e g++ --version");
             list.Add(new CompilerInfo { Name = "WSL g++", IsAvailable = wslGccExists, Path = wslGccExists ? "wsl" : "" });
+
+            // 6. NVCC (CUDA)
+            var nvccExists = await CheckExe("nvcc", "--version");
+            list.Add(new CompilerInfo { Name = "nvcc", IsAvailable = nvccExists, Path = nvccExists ? "nvcc" : "" });
 
             Discovered = list;
         }

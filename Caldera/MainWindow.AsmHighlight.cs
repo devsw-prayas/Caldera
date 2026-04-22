@@ -12,7 +12,11 @@ namespace Caldera
         {
             var accent = (Color)System.Windows.Application.Current.Resources["AccentColor"];
             _asmHighlighter = new AsmHighlightRenderer(AsmOutput, accent);
+            _diffHighlighter = new UI.DiffHighlightRenderer();
+            _searchHighlighter = new UI.AsmSearchRenderer();
             AsmOutput.TextArea.TextView.BackgroundRenderers.Add(_asmHighlighter);
+            AsmOutput.TextArea.TextView.BackgroundRenderers.Add(_diffHighlighter);
+            AsmOutput.TextArea.TextView.BackgroundRenderers.Add(_searchHighlighter);
             SourceEditor.TextArea.Caret.PositionChanged += OnSourceCaretMoved;
             AsmOutput.TextArea.Caret.PositionChanged += OnAsmCaretMoved;
             AsmOutput.TextArea.MouseDoubleClick += AsmOutput_MouseDoubleClick;

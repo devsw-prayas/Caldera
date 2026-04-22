@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ICSharpCode.AvalonEdit.Rendering;
 using System.Windows;
 using System.Windows.Media;
@@ -13,7 +13,7 @@ namespace Caldera
     {
         private readonly ICSharpCode.AvalonEdit.TextEditor _editor;
         private List<int> _highlightedLines = new(); // 1-based asm line numbers
-        private Brush _brush;
+        private Brush _brush = Brushes.Transparent;
 
         public KnownLayer Layer => KnownLayer.Background;
 

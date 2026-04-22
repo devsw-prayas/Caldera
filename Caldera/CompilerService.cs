@@ -30,27 +30,29 @@ namespace Caldera
 
     public static class CompilerService
     {
-        // ── Marker strings ────────────────────────────────────────────────────
-        //
         // clang / g++  — volatile asm comment markers.
         //   __asm__ volatile("# CALDERA_BEGIN") survives ALL optimisation levels
         //   because volatile asm is never removed by the optimiser.
         //
-        // MSVC  — extern "C" noinline sentinel functions.
+        // MSVC / NVCC  — extern "C" noinline sentinel functions.
         //   extern "C" suppresses name-mangling so the PROC/ENDP labels in the
         //   /FA listing are exactly  CalderaBegin PROC  /  CalderaEnd PROC,
         //   making extraction trivial without regex-matching mangled names.
+        //   NVCC on Windows uses the MSVC host compiler and follows this pattern.
 
         private const string GccBeginMarker = "CALDERA_BEGIN";
         private const string GccEndMarker   = "CALDERA_END";
         private const string MsvcBeginFn    = "CalderaBegin";
         private const string MsvcEndFn      = "CalderaEnd";
 
-        // ── Source wrapper ────────────────────────────────────────────────────
-
-        private static string WrapSource(string source, bool isMsvc)
+        // ── Source wrapping ──────────────────────────────────────────────────
+        //
+        // Wraps the user's source code in sentinel markers to allow the capture 
+        // engine to extract exactly the relevant assembly from the compiler listing.
+ 
+        private static string WrapSource(string source, bool isMsvcOrNvcc)
         {
-            if (isMsvc)
+            if (isMsvcOrNvcc)
             {
                 return
                     $"extern \"C\" __declspec(noinline) void {MsvcBeginFn}(){{}}\n" +
@@ -254,16 +256,19 @@ namespace Caldera
             var isWsl = compiler.StartsWith("WSL ");
             var compilerName = isWsl ? compiler.Substring(4) : compiler;
             var isMsvc = compilerName == "cl.exe";
-            var kind   = isMsvc ? AsmMapper.CompilerKind.Msvc : AsmMapper.CompilerKind.ClangOrGcc;
+            var isNvcc = compilerName == "nvcc";
+            var kind   = isMsvc ? AsmMapper.CompilerKind.Msvc : isNvcc ? AsmMapper.CompilerKind.Nvcc : AsmMapper.CompilerKind.ClangOrGcc;
 
-            await File.WriteAllTextAsync(srcFile, WrapSource(sourceText, isMsvc), ct);
+            if (isNvcc) srcFile = Path.Combine(tmpDir, $"caldera_{id}.cu");
+
+            await File.WriteAllTextAsync(srcFile, WrapSource(sourceText, isMsvc || isNvcc), ct);
 
             string rawAsm         = string.Empty;
             string compilerOutput = string.Empty;
             int    exitCode       = 0;
-
-            // ── MSVC ─────────────────────────────────────────────────────────
-
+ 
+            // ── MSVC (cl.exe) ────────────────────────────────────────────────
+ 
             if (isMsvc)
             {
                 var clExe    = CompilerPaths.Resolve("cl.exe");
@@ -292,6 +297,60 @@ namespace Caldera
                         : Path.ChangeExtension(srcFile, ".asm");
                     if (File.Exists(asmPath))
                         rawAsm = ExtractSentinelRegion(await File.ReadAllTextAsync(asmPath, ct), isMsvc: true);
+                }
+            }
+
+            // ── NVCC (CUDA) ──────────────────────────────────────────────────
+ 
+            else if (isNvcc)
+            {
+                var exe = "nvcc";
+                var cleanFlags = Regex.Replace(flags, @"-std=\S+\s*", "").Trim();
+                
+                bool isSass = cleanFlags.Contains("-cubin") || cleanFlags.Contains("--cubin");
+                if (!isSass && !cleanFlags.Contains("-ptx") && !cleanFlags.Contains("--ptx"))
+                    cleanFlags += " -ptx";
+                
+                if (!cleanFlags.Contains("-lineinfo"))
+                    cleanFlags += " -lineinfo";
+
+                if (!cleanFlags.Contains("-allow-unsupported-compiler"))
+                    cleanFlags += " -allow-unsupported-compiler";
+                
+                var args = $"--std {std} {cleanFlags} -o \"{asmFile}\" \"{srcFile}\"";
+
+                if (isSass)
+                {
+                    asmFile = Path.Combine(tmpDir, $"caldera_{id}.cubin");
+                    args = $"--std {std} {cleanFlags} -o \"{asmFile}\" \"{srcFile}\"";
+                }
+
+                // NVCC needs cl.exe (MSVC host compiler) on Windows.
+                var batFile = Path.Combine(tmpDir, $"caldera_{id}.bat");
+                var vcvars  = FindVcvars64Anywhere();
+                var bat     = new StringBuilder();
+                bat.AppendLine("@echo off");
+                if (vcvars != null) bat.AppendLine($"call \"{vcvars}\" >nul 2>&1");
+                bat.AppendLine($"{exe} {args}");
+                await File.WriteAllTextAsync(batFile, bat.ToString(), ct);
+
+                (string stdout, string stderr, int code) = await RunProcessAsync("cmd.exe", $"/c \"{batFile}\"", null, tmpDir, ct);
+                exitCode = code;
+                compilerOutput = stdout + "\n" + stderr;
+
+                if (code == 0 && File.Exists(asmFile))
+                {
+                    if (isSass)
+                    {
+                        (string sassOut, string sassErr, int sassCode) = 
+                            await RunProcessAsync("nvdisasm", $"-g \"{asmFile}\"", null, tmpDir, ct);
+                        rawAsm = sassOut;
+                        if (sassCode != 0) compilerOutput += "\n" + sassErr;
+                    }
+                    else
+                    {
+                        rawAsm = await File.ReadAllTextAsync(asmFile, ct);
+                    }
                 }
             }
 

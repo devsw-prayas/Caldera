@@ -27,9 +27,9 @@ namespace Caldera
         public static string FormatAsmForDisplay(string asm, AsmMapper.CompilerKind kind)
         {
             if (string.IsNullOrEmpty(asm)) return asm;
-            return kind == AsmMapper.CompilerKind.Msvc
-                ? FormatMsvcAsm(asm)
-                : FormatGccAsm(asm);
+            if (kind == AsmMapper.CompilerKind.Msvc) return FormatMsvcAsm(asm);
+            if (kind == AsmMapper.CompilerKind.Nvcc) return FormatNvccAsm(asm);
+            return FormatGccAsm(asm);
         }
 
         // ── GAS / clang display formatter ─────────────────────────────────────
@@ -248,6 +248,51 @@ namespace Caldera
                 sb.AppendLine("        " + cleaned.TrimStart());
             }
 
+            return sb.ToString().Trim();
+        }
+
+        // ── NVCC display formatter ─────────────────────────────────────────────
+
+        private static readonly Regex NvccDropLine = new(
+            @"^\s*(" +
+            @"\.loc\b|\.file\b|\.version\b|\.target\b|\.address_size\b" +
+            @")",
+            RegexOptions.Compiled);
+
+        private static readonly Regex NvccSassDropLine = new(
+            @"^//\s+File\s+"".*""\s*,\s*line\s+\d+",
+            RegexOptions.Compiled);
+
+        private static string FormatNvccAsm(string asm)
+        {
+            var sb = new StringBuilder();
+            bool firstFunc = true;
+
+            foreach (var rawLine in asm.Split('\n'))
+            {
+                var line = rawLine.TrimEnd();
+                if (NvccDropLine.IsMatch(line) || NvccSassDropLine.IsMatch(line)) continue;
+
+                var trimmed = line.TrimStart();
+                if (string.IsNullOrWhiteSpace(trimmed)) continue;
+
+                if (trimmed.StartsWith("//") && !trimmed.Contains("File")) 
+                {
+                    // keep standard comments if they seem useful, or drop them
+                    // PTX doesn't have many standard // comments besides function headers.
+                }
+
+                if (trimmed.StartsWith(".visible") || trimmed.StartsWith(".entry") || trimmed.StartsWith(".func"))
+                {
+                    if (!firstFunc) sb.AppendLine();
+                    sb.AppendLine(trimmed); 
+                    firstFunc = false;
+                }
+                else
+                {
+                    sb.AppendLine(line);
+                }
+            }
             return sb.ToString().Trim();
         }
 

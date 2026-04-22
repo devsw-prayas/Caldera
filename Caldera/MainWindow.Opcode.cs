@@ -11,9 +11,11 @@ namespace Caldera
         private void OnAsmCaretMoved(object? sender, EventArgs e)
         {
             if (!_opcodePanelOpen) return;
-            var line = AsmOutput.Document?.GetLineByNumber(AsmOutput.TextArea.Caret.Line);
+            var doc = AsmOutput.Document;
+            if (doc == null) return;
+            var line = doc.GetLineByNumber(AsmOutput.TextArea.Caret.Line);
             if (line == null) { OpcodeRefPanel.Show(null); return; }
-            var text = AsmOutput.Document.GetText(line.Offset, line.Length).TrimStart();
+            var text = doc.GetText(line.Offset, line.Length).TrimStart();
             var mnemonic = ExtractMnemonic(text);
             OpcodeRefPanel.Show(mnemonic);
         }

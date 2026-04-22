@@ -12,7 +12,7 @@ namespace Caldera
 
     public static class ThemeManager
     {
-        public static string CurrentTheme        { get; private set; } = "Corium";
+        public static string CurrentTheme        { get; private set; } = "Bloodshed";
         public static string CurrentFontFamily   { get; private set; } = "Consolas";
         public static double CurrentFontSize     { get; private set; } = 13;
         public static double CurrentOutputFontSize { get; private set; } = 12;
@@ -21,12 +21,23 @@ namespace Caldera
         public static event Action<string, double>? FontChanged;
         public static event Action<double>?       OutputFontSizeChanged;
 
-        public static void ApplyTheme(string name, Dictionary<string, Color> colors)
+        public static void ApplyTheme(string name)
         {
             CurrentTheme = name;
+            
+            var key = name;
+            
+            if (!PreferencesWindow.Themes.TryGetValue(key, out var colors))
+            {
+                // Fallback gracefully
+                key = "Bloodshed";
+                colors = PreferencesWindow.Themes[key];
+                CurrentTheme = "Bloodshed";
+            }
+
             var res = Application.Current.Resources;
-            foreach (var (key, value) in colors)
-                res[key] = value;
+            foreach (var (k, value) in colors)
+                res[k] = value;
 
             res["AccentBrush"]    = new SolidColorBrush(colors["AccentColor"]);
             res["AccentDimBrush"] = new SolidColorBrush(colors["AccentDimColor"]);

@@ -74,7 +74,7 @@ namespace Caldera
 
             AsmOutput.Text = session.AsmText;
             CompilerOutput.Text = session.CompilerText;
-            McaOutput.Text = session.McaText;
+            SetMcaDisplay(session.McaText);
 
             if (PinButton != null)
             {

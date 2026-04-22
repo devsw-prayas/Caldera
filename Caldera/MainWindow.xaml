@@ -118,6 +118,9 @@
                                         <Button Content="Save             Ctrl+S" Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="SaveFile_Click"/>
                                         <Button Content="Save As..."              Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="SaveAsFile_Click"/>
                                         <Border Height="1" Margin="8,4" Background="{DynamicResource BorderDimBrush}" Opacity="0.5"/>
+                                        <Button Content="Export to HTML"         Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="ExportHtml_Click"/>
+                                        <Button Content="Export to Markdown"     Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="ExportMarkdown_Click"/>
+                                        <Border Height="1" Margin="8,4" Background="{DynamicResource BorderDimBrush}" Opacity="0.5"/>
                                         <Button Content="Share on Godbolt ↗"     Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="GodboltButton_Click"/>
                                     </StackPanel>
                                 </Border>
@@ -144,8 +147,7 @@
                     </Border.Background>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
                         <ComboBox x:Name="CompilerSelector" Width="140"
-                                  Style="{StaticResource CalderaComboBox}" Margin="0,0,8,0"
-                                  SelectionChanged="CompilerSelector_SelectionChanged">
+                                  Style="{StaticResource CalderaComboBox}" Margin="0,0,8,0">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -296,7 +298,9 @@
                                                 HorizontalContentAlignment="Left" Padding="10,0"
                                                 Click="SavePresetButton_Click"/>
                                         <Border Height="1" Margin="8,2" Background="{DynamicResource BorderDimBrush}" Opacity="0.5"/>
-                                        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="240">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                                        HorizontalScrollBarVisibility="Disabled" 
+                                                        MaxHeight="240">
                                             <ItemsControl x:Name="PresetPickerList" Margin="6,4,6,8">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
@@ -346,7 +350,7 @@
                                 Style="{StaticResource RunButton}"
                                 Click="RunButton_Click"/>
                         <Button x:Name="AutoCompileToggle" Content="⏲ Auto: OFF"
-                                Width="85" Height="30"
+                                Width="105" Height="30"
                                 Style="{StaticResource MenuBarButton}"
                                 Margin="4,0,0,0"
                                 Click="AutoCompileToggle_Click"/>
@@ -883,15 +887,63 @@
                                                    HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
-                                <TextBox x:Name="McaOutput"
-                                         Margin="0,36,0,0"
-                                         Background="Transparent" Foreground="#e8d8d8"
-                                         BorderThickness="0" FontFamily="Consolas" FontSize="13"
-                                         IsReadOnly="True" AcceptsReturn="True"
-                                         TextWrapping="Wrap"
-                                         VerticalScrollBarVisibility="Auto"
-                                         HorizontalScrollBarVisibility="Disabled"
-                                         Padding="12"/>
+                                <Grid Margin="0,36,0,0">
+                                    <TextBox x:Name="McaOutputRaw"
+                                             Background="Transparent" Foreground="#e8d8d8"
+                                             BorderThickness="0" FontFamily="Consolas" FontSize="13"
+                                             IsReadOnly="True" AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto"
+                                             HorizontalScrollBarVisibility="Disabled"
+                                             Padding="12" Visibility="Collapsed" />
+                                    
+                                    <Grid x:Name="McaOutputGrid" Visibility="Visible">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                        </Grid.RowDefinitions>
+                                        
+                                        <TextBox x:Name="McaSummaryText" 
+                                                 Grid.Row="0"
+                                                 Background="Transparent" Foreground="#e8d8d8"
+                                                 BorderThickness="0" FontFamily="Consolas" FontSize="13"
+                                                 IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
+                                                 HorizontalScrollBarVisibility="Disabled"
+                                                 Padding="12,12,12,6" />
+
+                                        <DataGrid x:Name="McaDataGrid"
+                                                  Grid.Row="1"
+                                                  AutoGenerateColumns="False"
+                                                  Background="Transparent"
+                                                  RowBackground="Transparent"
+                                                  Foreground="#e8d8d8"
+                                                  HeadersVisibility="Column"
+                                                  BorderThickness="0"
+                                                  GridLinesVisibility="Horizontal"
+                                                  HorizontalGridLinesBrush="#303030"
+                                                  IsReadOnly="True"
+                                                  Margin="12,0,12,12">
+                                            <DataGrid.Resources>
+                                                <Style TargetType="DataGridColumnHeader">
+                                                    <Setter Property="Background" Value="#151515"/>
+                                                    <Setter Property="Foreground" Value="#a0a0a0"/>
+                                                    <Setter Property="Padding" Value="8,4"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                </Style>
+                                                <Style TargetType="DataGridCell">
+                                                    <Setter Property="Padding" Value="8,4"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                </Style>
+                                            </DataGrid.Resources>
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="uOps" Binding="{Binding UOps}" Width="60" />
+                                                <DataGridTextColumn Header="Latency" Binding="{Binding Latency}" Width="70" />
+                                                <DataGridTextColumn Header="RThroughput" Binding="{Binding RThroughput}" Width="100" />
+                                                <DataGridTextColumn Header="Instruction" Binding="{Binding Instruction}" Width="*" />
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </Grid>
+                                </Grid>
                             </Grid>
                         </Border>
                     </Grid>

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="C++" extensions=".cpp;.h;.hpp" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment"      foreground="#44403c" />
+  <Color name="String"       foreground="#38bdf8" />
+  <Color name="Preprocessor" foreground="#d6d3d1" />
+  <Color name="Keyword"      foreground="#a8a29e" fontWeight="bold" />
+  <Color name="Type"         foreground="#78716c" />
+  <Color name="Number"       foreground="#f5f5f4" />
+  <Color name="Punctuation"  foreground="#57534e" />
+  <RuleSet ignoreCase="false">
+    <Span color="Comment"><Begin>//</Begin></Span>
+    <Span color="Comment" multiline="true"><Begin>/\*</Begin><End>\*/</End></Span>
+    <Span color="String"><Begin>"</Begin><End>"</End><RuleSet><Span begin="\\" end="."/></RuleSet></Span>
+    <Span color="String"><Begin>'</Begin><End>'</End><RuleSet><Span begin="\\" end="."/></RuleSet></Span>
+    <Span color="Preprocessor"><Begin>^\s*\#</Begin><End>$</End></Span>
+    <Rule color="Number">\b0[xX][0-9a-fA-F]+|\b0[bB][01]+|\b[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?[fFlLuU]*\b</Rule>
+    <Keywords color="Keyword">
+      <Word>alignas</Word><Word>alignof</Word><Word>asm</Word><Word>auto</Word><Word>break</Word><Word>case</Word><Word>catch</Word>
+      <Word>class</Word><Word>const</Word><Word>consteval</Word><Word>constexpr</Word><Word>constinit</Word><Word>continue</Word>
+      <Word>decltype</Word><Word>default</Word><Word>delete</Word><Word>do</Word><Word>else</Word><Word>enum</Word><Word>explicit</Word>
+      <Word>export</Word><Word>extern</Word><Word>false</Word><Word>for</Word><Word>friend</Word><Word>goto</Word><Word>if</Word><Word>inline</Word>
+      <Word>mutable</Word><Word>namespace</Word><Word>new</Word><Word>noexcept</Word><Word>nullptr</Word><Word>operator</Word><Word>private</Word>
+      <Word>protected</Word><Word>public</Word><Word>register</Word><Word>return</Word><Word>sizeof</Word><Word>static</Word><Word>static_assert</Word>
+      <Word>struct</Word><Word>switch</Word><Word>template</Word><Word>this</Word><Word>thread_local</Word><Word>throw</Word><Word>true</Word><Word>try</Word><Word>typedef</Word>
+      <Word>typeid</Word><Word>typename</Word><Word>union</Word><Word>using</Word><Word>virtual</Word><Word>volatile</Word><Word>while</Word>
+    </Keywords>
+    <Keywords color="Type">
+      <Word>bool</Word><Word>char</Word><Word>char8_t</Word><Word>char16_t</Word><Word>char32_t</Word><Word>double</Word><Word>float</Word><Word>int</Word><Word>long</Word>
+      <Word>short</Word><Word>signed</Word><Word>unsigned</Word><Word>void</Word><Word>wchar_t</Word><Word>override</Word><Word>final</Word>
+    </Keywords>
+  </RuleSet>
+</SyntaxDefinition>
