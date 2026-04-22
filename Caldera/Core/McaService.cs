@@ -9,7 +9,8 @@ namespace Caldera
     {
         public static async Task<McaResult> RunMcaAsync(
             string asmText, string mcaFlags,
-            AsmMapper.CompilerKind kind = AsmMapper.CompilerKind.ClangOrGcc)
+            AsmMapper.CompilerKind kind = AsmMapper.CompilerKind.ClangOrGcc,
+            System.Threading.CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(asmText))
                 return new McaResult { Output = "No ASM output to analyse. Compile first." };
@@ -30,7 +31,7 @@ namespace Caldera
             try
             {
                 (string stdout, string stderr, int code) =
-                    await CompilerService.RunProcessAsync(exe, mcaFlags.Trim(), asmForMca);
+                    await CompilerService.RunProcessAsync(exe, mcaFlags.Trim(), asmForMca, null, ct);
 
                 string output = code == 0
                     ? (string.IsNullOrWhiteSpace(stdout) ? stderr : stdout)

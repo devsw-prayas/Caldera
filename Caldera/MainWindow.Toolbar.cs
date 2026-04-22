@@ -25,10 +25,23 @@ namespace Caldera
 
         private void SaveToolbarState()
         {
-            _prefs.Compiler = (CompilerSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "clang++";
-            _prefs.Std = (StdSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "c++20";
-            _prefs.CompilerFlags = FlagsInput.Text.Trim();
-            _prefs.McaFlags = McaFlagsInput.Text.Trim();
+            var compiler = (CompilerSelector.SelectedItem as CompilerInfo)?.Name ?? "clang++";
+            var std = (StdSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "c++20";
+            var flags = FlagsInput.Text.Trim();
+            var mcaFlags = McaFlagsInput.Text.Trim();
+
+            if (_activeSession != null)
+            {
+                _activeSession.Compiler = compiler;
+                _activeSession.Std = std;
+                _activeSession.Flags = flags;
+                _activeSession.McaFlags = mcaFlags;
+            }
+
+            _prefs.Compiler = compiler;
+            _prefs.Std = std;
+            _prefs.CompilerFlags = flags;
+            _prefs.McaFlags = mcaFlags;
             PreferencesStore.Save(_prefs);
         }
 
@@ -61,6 +74,7 @@ namespace Caldera
                 var current = FlagsInput.Text.TrimEnd();
                 FlagsInput.Text = string.IsNullOrWhiteSpace(current) ? flag : current + " " + flag;
                 FlagsInput.CaretIndex = FlagsInput.Text.Length;
+                SaveToolbarState();
                 FlagPickerPopup.IsOpen = false;
             }
         }
@@ -79,6 +93,7 @@ namespace Caldera
                 var current = McaFlagsInput.Text.TrimEnd();
                 McaFlagsInput.Text = string.IsNullOrWhiteSpace(current) ? flag : current + " " + flag;
                 McaFlagsInput.CaretIndex = McaFlagsInput.Text.Length;
+                SaveToolbarState();
                 McaFlagPickerPopup.IsOpen = false;
             }
         }

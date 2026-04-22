@@ -206,7 +206,7 @@ namespace Caldera
         // ── Process runner ────────────────────────────────────────────────────
 
         public static async Task<(string stdout, string stderr, int exitCode)> RunProcessAsync(
-            string exe, string args, string? stdinText = null, string? workingDir = null)
+            string exe, string args, string? stdinText = null, string? workingDir = null, System.Threading.CancellationToken ct = default)
         {
             var psi = new ProcessStartInfo
             {
@@ -229,9 +229,11 @@ namespace Caldera
                 proc.StandardInput.Close();
             }
 
-            var stdout = await proc.StandardOutput.ReadToEndAsync();
-            var stderr = await proc.StandardError.ReadToEndAsync();
-            await proc.WaitForExitAsync();
+            using var ctr = ct.Register(() => { try { proc.Kill(true); } catch { } });
+
+            var stdout = await proc.StandardOutput.ReadToEndAsync(ct);
+            var stderr = await proc.StandardError.ReadToEndAsync(ct);
+            await proc.WaitForExitAsync(ct);
 
             return (stdout, stderr, proc.ExitCode);
         }
@@ -239,7 +241,7 @@ namespace Caldera
         // ── Compile ───────────────────────────────────────────────────────────
 
         public static async Task<CompileResult> CompileAsync(
-            string compiler, string std, string flags, string sourceText)
+            string compiler, string std, string flags, string sourceText, System.Threading.CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(sourceText))
                 return new CompileResult { CompilerOutput = "No source to compile." };
@@ -249,10 +251,12 @@ namespace Caldera
             var srcFile = Path.Combine(tmpDir, $"caldera_{id}.cpp");
             var asmFile = Path.Combine(tmpDir, $"caldera_{id}.asm");
 
-            var isMsvc = compiler == "cl.exe";
+            var isWsl = compiler.StartsWith("WSL ");
+            var compilerName = isWsl ? compiler.Substring(4) : compiler;
+            var isMsvc = compilerName == "cl.exe";
             var kind   = isMsvc ? AsmMapper.CompilerKind.Msvc : AsmMapper.CompilerKind.ClangOrGcc;
 
-            await File.WriteAllTextAsync(srcFile, WrapSource(sourceText, isMsvc));
+            await File.WriteAllTextAsync(srcFile, WrapSource(sourceText, isMsvc), ct);
 
             string rawAsm         = string.Empty;
             string compilerOutput = string.Empty;
@@ -273,10 +277,10 @@ namespace Caldera
                 bat.AppendLine("@echo off");
                 if (vcvars != null) bat.AppendLine($"call \"{vcvars}\" >nul 2>&1");
                 bat.AppendLine($"{clInvoke} {args}");
-                await File.WriteAllTextAsync(batFile, bat.ToString());
+                await File.WriteAllTextAsync(batFile, bat.ToString(), ct);
 
                 (string stdout, string stderr, int code) =
-                    await RunProcessAsync("cmd.exe", $"/c \"{batFile}\"", null, tmpDir);
+                    await RunProcessAsync("cmd.exe", $"/c \"{batFile}\"", null, tmpDir, ct);
 
                 exitCode = code;
                 compilerOutput = $"cl.exe {args}\n{stdout}{stderr}";
@@ -287,7 +291,7 @@ namespace Caldera
                         ? asmFile
                         : Path.ChangeExtension(srcFile, ".asm");
                     if (File.Exists(asmPath))
-                        rawAsm = ExtractSentinelRegion(await File.ReadAllTextAsync(asmPath), isMsvc: true);
+                        rawAsm = ExtractSentinelRegion(await File.ReadAllTextAsync(asmPath, ct), isMsvc: true);
                 }
             }
 
@@ -295,14 +299,27 @@ namespace Caldera
 
             else
             {
-                var exe        = CompilerPaths.Resolve(compiler);
+                var exe        = isWsl ? "wsl" : CompilerPaths.Resolve(compilerName);
                 var cleanFlags = Regex.Replace(flags, @"-std=\S+\s*", "").Trim();
-                var args = $"-std={std} {cleanFlags} -S -fverbose-asm -masm=intel " +
+                
+                string args;
+                if (isWsl)
+                {
+                    var drive = char.ToLowerInvariant(srcFile[0]);
+                    var wslSrc = $"/mnt/{drive}/{srcFile.Substring(3).Replace('\\', '/')}";
+                    args = $"-e {compilerName} -std={std} {cleanFlags} -S -fverbose-asm -masm=intel " +
+                           $"-fno-asynchronous-unwind-tables -fno-dwarf2-cfi-asm " +
+                           $"-fno-stack-protector -o - \"{wslSrc}\"";
+                }
+                else
+                {
+                    args = $"-std={std} {cleanFlags} -S -fverbose-asm -masm=intel " +
                            $"-fno-asynchronous-unwind-tables -fno-dwarf2-cfi-asm " +
                            $"-fno-stack-protector -o - \"{srcFile}\"";
+                }
 
                 (string stdout, string stderr, int code) =
-                    await RunProcessAsync(exe, args, null, tmpDir);
+                    await RunProcessAsync(exe, args, null, tmpDir, ct);
 
                 exitCode = code;
                 compilerOutput = $"{compiler} {args}\n{stderr}";

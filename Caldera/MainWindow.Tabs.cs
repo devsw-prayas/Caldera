@@ -16,6 +16,35 @@ namespace Caldera
             if (content != null)
                 session.Document.Text = content;
 
+            if (_activeSession != null)
+            {
+                session.Compiler = _activeSession.Compiler;
+                session.Std = _activeSession.Std;
+                session.Flags = _activeSession.Flags;
+                session.McaFlags = _activeSession.McaFlags;
+            }
+
+            AddAndActivateTab(session);
+        }
+
+        private void RestoreTab(PersistedTab pt)
+        {
+            var session = new TabSession
+            {
+                FilePath = pt.FilePath,
+                Compiler = pt.Compiler != null ? pt.Compiler : "clang++",
+                Std = pt.Std != null ? pt.Std : "c++20",
+                Flags = pt.Flags != null ? pt.Flags : "-O2 -march=native",
+                McaFlags = pt.McaFlags != null ? pt.McaFlags : "--mcpu=native"
+            };
+            if (pt.Content != null)
+                session.Document.Text = pt.Content;
+
+            AddAndActivateTab(session);
+        }
+
+        private void AddAndActivateTab(TabSession session)
+        {
             _tabs.Add(session);
             SourceTabControl.ItemsSource = _tabs;
             SourceTabControl.SelectedItem = session;
@@ -26,6 +55,20 @@ namespace Caldera
         {
             if (_activeSession == session) return;
             _activeSession = session;
+
+            if (CompilerSelector != null)
+            {
+                foreach (CompilerInfo item in CompilerSelector.Items)
+                    if (item.Name == session.Compiler)
+                    { CompilerSelector.SelectedItem = item; break; }
+
+                foreach (ComboBoxItem item in StdSelector.Items)
+                    if (item.Content?.ToString() == session.Std)
+                    { StdSelector.SelectedItem = item; break; }
+
+                FlagsInput.Text = session.Flags;
+                McaFlagsInput.Text = session.McaFlags;
+            }
 
             SourceEditor.Document = session.Document;
 
@@ -59,6 +102,7 @@ namespace Caldera
             _activeSession.IsDirty = true;
             UpdateTitle();
             RefreshTabHeader(_activeSession);
+            TriggerDebouncedCompile();
         }
 
         private void RefreshTabHeader(TabSession session)

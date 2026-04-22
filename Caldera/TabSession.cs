@@ -33,5 +33,11 @@ namespace Caldera
 
         public Dictionary<int, List<int>> AsmMap { get; set; } = new();
         public AsmMapper.CompilerKind CompilerKind { get; set; } = AsmMapper.CompilerKind.ClangOrGcc;
+
+        // ── Per-tab Compiler Settings ─────────────────────────────────────────
+        public string Compiler { get; set; } = "clang++";
+        public string Std { get; set; } = "c++20";
+        public string Flags { get; set; } = "-O2 -march=native";
+        public string McaFlags { get; set; } = "--mcpu=native";
     }
 }

@@ -12,17 +12,23 @@ namespace Caldera
 
         private async void McaButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_mcaRunning || _activeSession == null) return;
+            _mcaCts?.Cancel();
+            _mcaCts = new System.Threading.CancellationTokenSource();
+            var ct = _mcaCts.Token;
+
+            if (_activeSession == null) return;
             _mcaRunning = true;
-            McaButton.IsEnabled = false;
             McaOutput.Text = "Running llvm-mca...";
 
             try
             {
                 var result = await McaService.RunMcaAsync(
                     _activeSession.RawAsmText,
-                    McaFlagsInput.Text.Trim(),
-                    _activeSession.CompilerKind);
+                    _activeSession.McaFlags,
+                    _activeSession.CompilerKind, ct);
+                    
+                if (ct.IsCancellationRequested) return;
+                
                 _activeSession.McaText = result.Output;
                 McaOutput.Text = result.Output;
             }
@@ -32,8 +38,10 @@ namespace Caldera
             }
             finally
             {
-                _mcaRunning = false;
-                McaButton.IsEnabled = true;
+                if (!ct.IsCancellationRequested)
+                {
+                    _mcaRunning = false;
+                }
             }
         }
 
@@ -41,17 +49,22 @@ namespace Caldera
 
         private async void InlineMcaButton_Click(object sender, RoutedEventArgs e)
         {
+            _mcaCts?.Cancel();
+            _mcaCts = new System.Threading.CancellationTokenSource();
+            var ct = _mcaCts.Token;
+
             if (_activeSession == null || string.IsNullOrWhiteSpace(_activeSession.RawAsmText)) return;
 
-            InlineMcaButton.IsEnabled = false;
             InlineMcaButton.Content = "⏳ annotating";
 
             try
             {
                 var mcaResult = await McaService.RunMcaAsync(
                     _activeSession.RawAsmText,
-                    McaFlagsInput.Text.Trim() + " --instruction-info",
-                    _activeSession.CompilerKind);
+                    _activeSession.McaFlags + " --instruction-info",
+                    _activeSession.CompilerKind, ct);
+
+                if (ct.IsCancellationRequested) return;
 
                 if (!mcaResult.Success)
                 {
@@ -67,8 +80,10 @@ namespace Caldera
             }
             finally
             {
-                InlineMcaButton.IsEnabled = true;
-                InlineMcaButton.Content = "⚡ annotate";
+                if (!ct.IsCancellationRequested)
+                {
+                    InlineMcaButton.Content = "⚡ annotate";
+                }
             }
         }
 

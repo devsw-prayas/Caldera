@@ -11,11 +11,13 @@ namespace Caldera
 
         private async void RunButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_isRunning || _activeSession == null) return;
-            if (string.IsNullOrWhiteSpace(SourceEditor.Text)) return;
+            _compileCts?.Cancel();
+            _compileCts = new System.Threading.CancellationTokenSource();
+            var ct = _compileCts.Token;
+
+            if (_activeSession == null || string.IsNullOrWhiteSpace(SourceEditor.Text)) return;
 
             _isRunning = true;
-            RunButton.IsEnabled = false;
             ShowOutputPanel();
 
             CompilerOutput.Text = "Compiling...";
@@ -25,11 +27,13 @@ namespace Caldera
 
             try
             {
-                var compiler = (CompilerSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "clang++";
-                var flags = FlagsInput.Text.Trim();
-                var std = (StdSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "c++20";
+                var compiler = _activeSession.Compiler;
+                var flags = _activeSession.Flags;
+                var std = _activeSession.Std;
 
-                var result = await CompilerService.CompileAsync(compiler, std, flags, SourceEditor.Text);
+                var result = await CompilerService.CompileAsync(compiler, std, flags, SourceEditor.Text, ct);
+
+                if (ct.IsCancellationRequested) return;
 
                 _activeSession.AsmText = result.AsmOutput;
                 _activeSession.RawAsmText = result.RawAsmOutput;
@@ -59,8 +63,11 @@ namespace Caldera
             }
             finally
             {
-                _isRunning = false;
-                RunButton.IsEnabled = true;
+                if (!ct.IsCancellationRequested)
+                {
+                    _isRunning = false;
+                    RunButton.IsEnabled = true;
+                }
             }
         }
 

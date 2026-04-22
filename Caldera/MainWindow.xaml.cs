@@ -31,10 +31,13 @@ namespace Caldera
         // ── Persistent preferences ────────────────────────────────────────────
         private PreferencesData _prefs = new();
 
-        // ── Run / MCA / Compare state ─────────────────────────────────────────
         private bool _isRunning      = false;
         private bool _mcaRunning     = false;
         private bool _compareRunning = false;
+
+        // ── CancellationTokenSources ──────────────────────────────────────────
+        private System.Threading.CancellationTokenSource? _compileCts;
+        private System.Threading.CancellationTokenSource? _mcaCts;
 
         // ── Ctor ──────────────────────────────────────────────────────────────
         public MainWindow()
@@ -99,12 +102,20 @@ namespace Caldera
             if (_prefs.WindowMaximized)
                 WindowState = WindowState.Maximized;
 
-            Closing += (s, _) => SaveWindowGeometry();
-
-            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Render, () =>
+            Closing += (s, _) => 
             {
+                SaveWindowGeometry();
+                SessionStore.Save(_tabs);
+            };
+
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Render, async () =>
+            {
+                InitAutoCompile();
                 InitAsmHighlighter();
                 RefreshFlagPicker();
+
+                await CompilerDiscovery.DiscoverAsync();
+                CompilerSelector.ItemsSource = CompilerDiscovery.Discovered;
 
                 RestoreToolbarState(_prefs);
 
@@ -118,7 +129,16 @@ namespace Caldera
                     }
                 }
 
-                NewTab();
+                var savedTabs = SessionStore.Load();
+                if (savedTabs.Count > 0)
+                {
+                    foreach (var pt in savedTabs)
+                        RestoreTab(pt);
+                }
+                else
+                {
+                    NewTab(null, "int main() {\n    return 0;\n}");
+                }
             });
         }
 
