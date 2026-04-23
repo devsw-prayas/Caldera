@@ -2,7 +2,7 @@
 
 A native Windows C++ → ASM inspection IDE. Write code, see machine output instantly — no browser, no round-trips, no noise.
 
-![Caldera main view](assets/hailstorm.png)
+![Caldera main view](Assets/hailstorm.png)
 
 
 ## Compilers
@@ -11,7 +11,7 @@ Caldera drives **clang++**, **g++**, **cl.exe** (MSVC), and **nvcc** (CUDA) dire
 MSVC is auto-discovered via `vswhere` and `vcvars64.bat` — no manual environment setup required. 
 Cross-compilation is frictionless: Caldera automatically maps `C:\` paths to internal WSL `/mnt/c/` filesystem mounts to invoke Linux binaries seamlessly.
  
-![Compiler configuration](assets/zenith.png)
+![Compiler configuration](Assets/zenith.png)
 
 
 
@@ -31,14 +31,14 @@ The raw ASM is then run through a Compiler Explorer-style formatter that strips 
 
 Hover or click any line in the source editor and the corresponding ASM instructions highlight in the output pane, and vice versa. The mapping is built from compiler-emitted source-location tags (`# file:line:` for GCC/clang, `; Line N` for MSVC) and remapped to display-ASM line numbers after formatting. On Windows clang (which emits no source tags), the mapping falls back to function-name matching.
 
-![Source to ASM highlighting](assets/bloodshed.png)
+![Source to ASM highlighting](Assets/bloodshed.png)
 
 
 ## Pin & diff
 
 **⊞ pin** snapshots the current ASM output as a baseline. Utilizing an embedded **Myers LCS (Longest Common Subsequence)** diff engine coupled with AvalonEdit background-renderers, additions and deletions are gracefully highlighted softly underneath the text bounds, rather than resorting to archaic character prefixing. 
 
-![Pin and diff view](assets/outerspace.png)
+![Pin and diff view](Assets/outerspace.png)
 
 
 ## llvm-mca integration
@@ -50,7 +50,7 @@ Hover or click any line in the source editor and the corresponding ASM instructi
 
 **⊞ ref** opens a sliding panel with a searchable opcode database. Each entry includes a one-line summary, category, flags read/written, encoding forms with operand types and opcode bytes, a multi-sentence description, exception classes, and per-microarchitecture latency and reciprocal throughput data. Double-clicking an instruction in the ASM pane jumps directly to its entry.
 
-![Opcode reference panel](assets/amber_steel.png)
+![Opcode reference panel](Assets/amber_steel.png)
 
 
 ## Flag picker & presets
@@ -73,7 +73,7 @@ A standalone Session Exporter packages every attribute of the active tab (C++ co
 
 Multiple independent editor sessions run in tabs, each maintaining its own background isolation and configurations. Code changes track an unsaved `•` marker, and workspaces persist completely natively into `%APPDATA%\Caldera\session.json`. You can utilize the built in **⏲ Auto** toggle to perform a 600ms delayed background dispatcher compilation asynchronously as you type.
  
-![Multi-tab session view](assets/slipstream.png)
+![Multi-tab session view](Assets/slipstream.png)
 
 
 
