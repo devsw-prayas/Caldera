@@ -120,6 +120,7 @@
                                         <Border Height="1" Margin="8,4" Background="{DynamicResource BorderDimBrush}" Opacity="0.5"/>
                                         <Button Content="Export to HTML"         Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="ExportHtml_Click"/>
                                         <Button Content="Export to Markdown"     Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="ExportMarkdown_Click"/>
+                                        <Button Content="Export to Image (PNG)"  Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="ExportImage_Click"/>
                                         <Border Height="1" Margin="8,4" Background="{DynamicResource BorderDimBrush}" Opacity="0.5"/>
                                         <Button Content="Share on Godbolt ↗"     Style="{StaticResource MenuBarButton}" HorizontalContentAlignment="Left" Padding="10,0" Click="GodboltButton_Click"/>
                                     </StackPanel>

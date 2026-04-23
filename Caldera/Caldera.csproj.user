@@ -8,8 +8,5 @@
     <Compile Update="PreferencesWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="UnsavedChnagesDialog.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
 </Project>

@@ -113,34 +113,42 @@ namespace Caldera
 
         private static string InjectMcaAnnotations(string displayAsm, string mcaOutput)
         {
-            // Parse the llvm-mca instruction-info table:
-            // Columns: [#]  [Latency]  [RThroughput]  [NumMicroOpcodes]  [Mnemonic]
-            var rowRx = new Regex(
-                @"^\s*\[(\d+)\]\s+(\d+)\s+([\d.]+)\s+\d+\s+(\w+)",
-                RegexOptions.Compiled | RegexOptions.Multiline);
+            // 1. Extract all instruction info using the existing proven parser
+            var parsed = Core.McaParser.Parse(mcaOutput);
+            var infoList = parsed.Instructions;
 
-            var annotations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (Match m in rowRx.Matches(mcaOutput))
-            {
-                var mnemonic = m.Groups[4].Value;
-                var latency = m.Groups[2].Value;
-                var rtput = m.Groups[3].Value;
-                annotations[mnemonic] = $"lat:{latency} rtp:{rtput}";
-            }
+            if (infoList.Count == 0) return displayAsm;
 
-            if (annotations.Count == 0) return displayAsm;
-
-            var mnemonicRx = new Regex(@"^\s+(\w+)");
+            // 2. Map them sequentially to the display assembly
+            // We skip lines that are labels (ending in :) or directives (starting with .)
+            var instrRx = new Regex(@"^\s+([a-zA-Z]\w*)", RegexOptions.Compiled);
             var sb = new StringBuilder();
+            int infoIdx = 0;
+
             foreach (var line in displayAsm.Split('\n'))
             {
-                var m = mnemonicRx.Match(line);
-                if (m.Success && annotations.TryGetValue(m.Groups[1].Value, out var ann))
-                    sb.AppendLine(line.TrimEnd().PadRight(48) + "  ; " + ann);
+                var trimmed = line.Trim();
+                if (string.IsNullOrWhiteSpace(trimmed))
+                {
+                    sb.AppendLine(line);
+                    continue;
+                }
+
+                // Match instructions (lines starting with whitespace and a word, not a label or directive)
+                var m = instrRx.Match(line);
+                if (m.Success && !trimmed.EndsWith(":") && !trimmed.StartsWith(".") && infoIdx < infoList.Count)
+                {
+                    var info = infoList[infoIdx++];
+                    sb.AppendLine(line.TrimEnd().PadRight(48) + $"  ; lat:{info.Latency} rtp:{info.RThroughput}");
+                }
                 else
+                {
                     sb.AppendLine(line.TrimEnd());
+                }
             }
+
             return sb.ToString().TrimEnd();
         }
     }
 }
+
